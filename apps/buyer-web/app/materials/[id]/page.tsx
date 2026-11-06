@@ -13,7 +13,7 @@ import { DeliveryCheck } from '@/components/catalog/DeliveryCheck';
 import { QuantityHelper } from '@/components/catalog/QuantityHelper';
 import { MaterialCard } from '@/components/catalog/MaterialCard';
 import { useCategories } from '@/lib/categories';
-import { catalogCategory, catalogItem, catalogItems, matchCatalogItem, offerQuery, roomsFor } from '@sthiva/web-core';
+import { catalogCategory, catalogItem, catalogItems, matchCatalogItem, offerQuery } from '@sthiva/web-core';
 import { MadeToOrderSteps } from '@/components/catalog/MadeToOrderSteps';
 
 function OptionChips({ label, options, value, onChange }: { label: string; options: string[]; value: string | null; onChange: (v: string | null) => void }) {
@@ -181,24 +181,6 @@ export default function MaterialPage({ params }: { params: Promise<{ id: string 
                   {item.note}
                 </p>
               )
-            )}
-
-            {roomsFor(item.id).length > 0 && (
-              <section aria-labelledby="rooms-title">
-                <h2 id="rooms-title" className="font-display text-xl font-semibold tracking-tight">Used in</h2>
-                <ul className="mt-3 flex flex-wrap gap-2">
-                  {roomsFor(item.id).map((r) => (
-                    <li key={r.slug}>
-                      <Link href={`/rooms/${r.slug}`} className="group inline-flex items-center gap-2 rounded-full border border-sand-4 bg-sand-2 py-1.5 pl-1.5 pr-4 text-[14px] font-medium transition-colors hover:border-ink">
-                        <span className="relative h-7 w-7 overflow-hidden rounded-full bg-sand-3">
-                          <Image src={r.photo} alt="" fill sizes="28px" className="object-cover" />
-                        </span>
-                        {r.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </section>
             )}
           </div>
 

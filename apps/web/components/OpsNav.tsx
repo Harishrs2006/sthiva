@@ -12,7 +12,6 @@ const TABS = [
   { href: '/drivers', label: 'Drivers', icon: 'local_shipping' },
   { href: '/people', label: 'People', icon: 'group' },
   { href: '/catalog', label: 'Catalog', icon: 'inventory_2' },
-  { href: '/designs', label: 'Designs', icon: 'design_services' },
   { href: '/payouts', label: 'Payouts', icon: 'payments' },
   { href: '/insights', label: 'Insights', icon: 'monitoring' },
   { href: '/settings', label: 'Settings', icon: 'tune' },

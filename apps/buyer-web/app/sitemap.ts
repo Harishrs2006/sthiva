@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { CATALOG, CATALOG_CATEGORIES, ROOMS } from '@sthiva/web-core';
+import { CATALOG, CATALOG_CATEGORIES } from '@sthiva/web-core';
 import { SITE } from '@/lib/site';
 import { fetchProductIds } from '@/lib/server-api';
 
@@ -22,9 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     page('', 'daily', 1),
     ...CATALOG_CATEGORIES.map((c) => page(`/category/${c.slug}`, 'daily', 0.8)),
     ...CATALOG.map((i) => page(`/materials/${i.id}`, 'weekly', 0.6)),
-    page('/rooms', 'weekly', 0.7),
-    page('/designs', 'daily', 0.7),
-    ...ROOMS.map((r) => page(`/rooms/${r.slug}`, 'weekly', 0.7)),
+    page('/catalogue', 'daily', 0.7),
     ...products.map((p) => page(`/product/${p._id}`, 'daily', 0.7, p.updatedAt ? new Date(p.updatedAt) : now)),
     ...['/terms', '/privacy', '/refunds', '/cookies', '/account-deletion'].map((path) => page(path, 'monthly', 0.3)),
   ];

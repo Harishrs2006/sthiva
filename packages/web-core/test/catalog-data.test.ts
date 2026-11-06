@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { CATALOG, CATALOG_CATEGORIES, catalogItem } from '../src/catalog/data';
-import { ROOMS, room, roomSections, roomsFor } from '../src/catalog/rooms';
 import { searchCatalog } from '../src/catalog/search';
 import { deliveryTimeLabel, deliveryTimePhrase, formatDeliveryDate, istDate } from '../src/delivery';
 
@@ -35,7 +34,6 @@ describe('catalogue data', () => {
   it('every photo and illustration exists', () => {
     for (const c of CATALOG_CATEGORIES) expect(fs.existsSync(path.join(PUBLIC, c.photo)), c.photo).toBe(true);
     for (const i of CATALOG) expect(fs.existsSync(path.join(PUBLIC, i.image)), i.image).toBe(true);
-    for (const r of ROOMS) expect(fs.existsSync(path.join(PUBLIC, r.photo)), r.photo).toBe(true);
   });
 
   it('made-to-order items explain how the date is set', () => {
@@ -43,20 +41,6 @@ describe('catalogue data', () => {
   });
 });
 
-describe('rooms', () => {
-  it('only lists catalogue items that exist', () => {
-    for (const r of ROOMS) {
-      for (const s of r.sections) for (const id of s.itemIds) expect(catalogItem(id), `${r.slug}: ${id}`).toBeDefined();
-    }
-  });
-
-  it('resolves sections and reverse links', () => {
-    const kitchen = room('kitchen')!;
-    expect(roomSections(kitchen)[0].items[0].id).toBe('modular-kitchen');
-    expect(roomsFor('gypsum-false-ceiling').map((r) => r.slug)).toEqual(expect.arrayContaining(['bedroom', 'living-dining']));
-    expect(room('garage')).toBeUndefined();
-  });
-});
 
 describe('search finds the new interiors', () => {
   it.each([

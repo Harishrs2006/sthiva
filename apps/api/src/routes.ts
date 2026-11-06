@@ -13,7 +13,6 @@ import { deliveryRoutes } from "./features/delivery/delivery.routes";
 import { aiRoutes } from "./features/ai/ai.routes";
 import { reviewRoutes } from "./features/reviews/review.routes";
 import { opsRoutes } from "./features/ops/ops.routes";
-import { designRoutes } from "./features/designs/designs.routes";
 import { createLocationRoutes } from "./features/locations/locations.routes";
 
 // Mounts all feature routes plus the 404 and error handlers (which must come last).
@@ -32,7 +31,6 @@ export function registerRoutes(app: Application): void {
   app.use(`${base}/ai`, aiRoutes);
   app.use(`${base}/reviews`, reviewRoutes);
   app.use(`${base}/ops`, opsRoutes);
-  app.use(`${base}/designs`, designRoutes);
   app.use(`${base}/locations`, createLocationRoutes());
 
   app.use((_req: Request, res: Response) => {

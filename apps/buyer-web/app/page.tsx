@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LocationSelector, ROOMS } from '@sthiva/web-core';
-import { RoomCard } from '@/components/rooms/RoomCard';
+import { LocationSelector } from '@sthiva/web-core';
 import { Header } from '@/components/Header';
 import { BottomNav } from '@/components/BottomNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
@@ -107,36 +106,6 @@ export default function HomePage() {
             )}
             {categories.status === 'success' && <CategoryGrid categories={categories.data} />}
           </div>
-        </section>
-
-        {/* ── Shop by room ─────────────────────────────── */}
-        <section id="rooms" className="scroll-mt-24 pb-20 md:pb-28" aria-labelledby="rooms-title">
-          <div className="container-x">
-            <Reveal className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
-              <div>
-                <p className="eyebrow text-stone">Interiors and finishing</p>
-                <h2 id="rooms-title" className="mt-4 font-display text-[clamp(2.25rem,4.6vw,3.75rem)] font-bold leading-[0.98] tracking-tightest">
-                  Shop by <span className="font-serif font-normal italic">room.</span>
-                </h2>
-              </div>
-              <div className="flex max-w-sm flex-col items-start gap-4">
-                <p className="text-[15px] leading-relaxed text-stone">
-                  Kitchens, wardrobes, false ceilings, tiles and fittings, grouped the way you plan a home.
-                </p>
-                <Link href="/rooms" className="btn-ghost">
-                  All rooms
-                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">arrow_forward</span>
-                </Link>
-              </div>
-            </Reveal>
-          </div>
-          <ul className="container-x -mb-2 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 lg:grid lg:snap-none lg:grid-cols-3 lg:overflow-visible">
-            {ROOMS.map((r) => (
-              <li key={r.slug} className="w-[82%] shrink-0 snap-start sm:w-[46%] lg:w-auto">
-                <RoomCard room={r} />
-              </li>
-            ))}
-          </ul>
         </section>
 
         {/* ── How it works ─────────────────────────────── */}

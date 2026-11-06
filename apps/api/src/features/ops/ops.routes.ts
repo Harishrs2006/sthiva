@@ -14,7 +14,6 @@ import {
 } from './ops.schemas';
 import { opsList, opsGet, opsCreate, opsUpdate, opsMerge } from '../catalog/catalog.controller';
 import { opsDocuments, reviewDocument } from '../suppliers/documents';
-import { opsDesignRequests, opsDesigns, reviewDesign, reviewDesignSchema } from '../designs/designs';
 import { z } from 'zod';
 
 const documentReviewSchema = z.object({
@@ -55,11 +54,6 @@ router.get('/suppliers', validate(supplierListQuery, 'query'), listSuppliers);
 router.patch('/suppliers/:id/verification', validate(supplierVerificationSchema), setSupplierVerification);
 router.get('/suppliers/:id/documents', opsDocuments);
 router.patch('/suppliers/:id/documents/:type', validate(documentReviewSchema), reviewDocument);
-
-// Design catalogue review queue and every buyer enquiry
-router.get('/designs', opsDesigns);
-router.patch('/designs/:id', validate(reviewDesignSchema), reviewDesign);
-router.get('/design-requests', opsDesignRequests);
 
 router.get('/users', validate(usersQuery, 'query'), listUsers);
 router.get('/analytics', validate(analyticsQuery, 'query'), getAnalytics);

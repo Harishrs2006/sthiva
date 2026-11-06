@@ -10,8 +10,6 @@ const TABS = [
   { href: '/orders', label: 'Orders', icon: 'receipt_long' },
   { href: '/products', label: 'Products', icon: 'inventory_2' },
   { href: '/stock', label: 'Stock', icon: 'stacks' },
-  { href: '/designs', label: 'Designs', icon: 'design_services' },
-  { href: '/enquiries', label: 'Enquiries', icon: 'forum' },
   { href: '/weekly', label: 'Weekly check', icon: 'event_available' },
   { href: '/payouts', label: 'Payouts', icon: 'payments' },
   { href: '/setup', label: 'Business', icon: 'storefront' },

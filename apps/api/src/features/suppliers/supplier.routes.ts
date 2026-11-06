@@ -1,8 +1,4 @@
 import { supplierSettlements } from '../settlements/settlement.controller';
-import {
-  createDesign, createDesignSchema, deleteDesign, supplierDesignRequests, supplierDesigns, supplierUpdateRequest, updateDesign,
-  updateDesignSchema, updateRequestSchema,
-} from '../designs/designs';
 import { myDocuments, uploadDocument, documentUpload } from './documents';
 import { getWeekly, confirmWeekly, weeklyConfirmSchema } from './weekly';
 import { Router } from 'express';
@@ -137,14 +133,6 @@ const acceptSchema = z.object({ deliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{
 const deliveryDateSchema = z.object({ deliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Choose a delivery date') }).strict();
 router.post('/me/orders/:id/accept', validate(acceptSchema), acceptOrder);
 router.patch('/me/orders/:id/delivery-date', validate(deliveryDateSchema), changeDeliveryDate);
-
-// Design catalogue: the supplier's own designs (reviewed by Sthiva) and buyers' quote requests
-router.get('/me/designs', supplierDesigns);
-router.post('/me/designs', validate(createDesignSchema), createDesign);
-router.patch('/me/designs/:id', validate(updateDesignSchema), updateDesign);
-router.delete('/me/designs/:id', deleteDesign);
-router.get('/me/design-requests', supplierDesignRequests);
-router.patch('/me/design-requests/:id', validate(updateRequestSchema), supplierUpdateRequest);
 router.post('/me/orders/:id/reject', validate(rejectSchema), rejectOrder);
 router.post('/me/orders/:id/problem', validate(problemSchema), reportProblem);
 router.patch('/me/orders/:id/status', validate(supplierStatusSchema), updateOrderStatus);

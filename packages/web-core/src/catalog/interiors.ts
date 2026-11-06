@@ -1,7 +1,7 @@
 import type { CatalogCategory, CatalogItem } from './types';
 
-// Interiors and finishing: woodwork, walls and ceilings, hardware, doors and windows, bath and kitchen,
-// roofing and waterproofing, wood and vinyl flooring. Same rules as data.ts: what exists in the Indian
+// Interiors and finishing, filed under the categories buyers already know (plumbing, paints, plywood,
+// tiles...) plus one new category, Hardware & Fittings. Same rules as data.ts: what exists in the Indian
 // market and how it is sold; brand lists name what exists, not what Sthiva suppliers stock; no prices,
 // stock or delivery promises. Made-to-order items are measured and quoted by the supplier, who then
 // confirms a date.
@@ -20,18 +20,13 @@ const CEILING_BRANDS = ['Saint-Gobain Gyproc', 'USG Boral', 'Knauf'];
 const MADE_TO_ORDER_NOTE = 'Made to order: the supplier measures your site, quotes a price and confirms the delivery date once the order is accepted.';
 
 export const INTERIOR_CATEGORIES: CatalogCategory[] = [
-  { slug: 'modular-woodwork', name: 'Modular & Woodwork', photo: '/categories/modular-woodwork.jpg', tagline: 'Modular kitchens, wardrobes, TV units, beds and pooja units, made to measure.', groups: ['Kitchens', 'Wardrobes and storage', 'Living and bedroom', 'Pooja and panels'] },
-  { slug: 'walls-ceilings', name: 'Walls & Ceilings', photo: '/categories/walls-ceilings.jpg', tagline: 'False ceilings, wall panels, cladding, wallpaper and designer finishes.', groups: ['Ceilings', 'Wall panels and cladding', 'Wallpaper and finishes'] },
   { slug: 'hardware-fittings', name: 'Hardware & Fittings', photo: '/categories/hardware-fittings.jpg', tagline: 'Hinges, channels, handles, kitchen baskets, locks, screws and adhesives.', groups: ['Cabinet and wardrobe fittings', 'Locks and door hardware', 'Fixings and adhesives'] },
-  { slug: 'doors-windows', name: 'Doors & Windows', photo: '/categories/doors-windows.jpg', tagline: 'UPVC and aluminium windows, main and safety doors, glass and mesh.', groups: ['Windows', 'Doors', 'Glass and mesh'] },
-  { slug: 'bath-kitchen', name: 'Bath & Kitchen', photo: '/categories/bath-kitchen.jpg', tagline: 'Kitchen sinks, chimneys, shower partitions, vanities and bath accessories.', groups: ['Kitchen', 'Bathroom'] },
-  { slug: 'roofing-waterproofing', name: 'Roofing & Waterproofing', photo: '/categories/roofing-waterproofing.jpg', tagline: 'Clay roof tiles, polycarbonate sheets, terrace waterproofing and gutters.', groups: ['Roofing', 'Waterproofing', 'Rainwater'] },
 ];
 
 export const INTERIOR_ITEMS: CatalogItem[] = [
   // ── Modular & Woodwork ────────────────────────────────────────────
   {
-    id: 'modular-kitchen', name: 'Modular kitchen', categorySlug: 'modular-woodwork', group: 'Kitchens',
+    id: 'modular-kitchen', name: 'Modular kitchen', categorySlug: 'plywood-timber', group: 'Modular furniture',
     summary: 'Factory-made kitchen cabinets built to your kitchen\'s measurements, fitted on site.',
     uses: ['New homes and kitchen renovation', 'Base, wall and tall (pantry) units'],
     specs: [{ label: 'Priced by', value: 'Running foot of counter, or square foot of shutter area' }],
@@ -45,7 +40,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'wardrobes', name: 'Wardrobes', categorySlug: 'modular-woodwork', group: 'Wardrobes and storage',
+    id: 'wardrobes', name: 'Wardrobes', categorySlug: 'plywood-timber', group: 'Modular furniture',
     summary: 'Built-in wardrobes with hinged or sliding shutters, made to the wall size.',
     uses: ['Bedrooms', 'Walk-in closets', 'Loft storage above'],
     specs: [{ label: 'Priced by', value: 'Square foot of front area' }],
@@ -57,7 +52,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'tv-units', name: 'TV units and wall storage', categorySlug: 'modular-woodwork', group: 'Living and bedroom',
+    id: 'tv-units', name: 'TV units and wall storage', categorySlug: 'plywood-timber', group: 'Modular furniture',
     summary: 'Wall-mounted or floor TV units with panelling, shelves and closed storage.',
     uses: ['Living rooms', 'Bedrooms'], specs: [],
     variants: [{ label: 'Style', options: ['Wall-mounted', 'Floor-standing', 'Full-wall panelling', 'Slatted (fluted) wood'] }],
@@ -65,7 +60,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'storage-beds', name: 'Beds with storage', categorySlug: 'modular-woodwork', group: 'Living and bedroom',
+    id: 'storage-beds', name: 'Beds with storage', categorySlug: 'plywood-timber', group: 'Modular furniture',
     summary: 'Plywood or solid-wood beds with hydraulic lift-up or drawer storage underneath.',
     uses: ['Bedrooms with little floor space'], specs: [],
     variants: [
@@ -76,7 +71,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'study-units', name: 'Study tables and bookshelves', categorySlug: 'modular-woodwork', group: 'Living and bedroom',
+    id: 'study-units', name: 'Study tables and bookshelves', categorySlug: 'plywood-timber', group: 'Modular furniture',
     summary: 'Wall-mounted desks, study units and bookshelves for homes and home offices.',
     uses: ['Kids\' rooms', 'Home office'], specs: [],
     variants: [{ label: 'Item', options: ['Study table', 'Wall-mounted desk', 'Bookshelf', 'Combined study unit'] }],
@@ -84,7 +79,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'crockery-shoe-units', name: 'Crockery and shoe units', categorySlug: 'modular-woodwork', group: 'Wardrobes and storage',
+    id: 'crockery-shoe-units', name: 'Crockery and shoe units', categorySlug: 'plywood-timber', group: 'Modular furniture',
     summary: 'Crockery cabinets with glass shutters and shoe racks for the entrance.',
     uses: ['Dining area', 'Entrance foyer'], specs: [],
     variants: [{ label: 'Item', options: ['Crockery unit', 'Shoe rack', 'Foyer storage with seat'] }],
@@ -92,7 +87,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'pooja-units', name: 'Pooja units (mandir)', categorySlug: 'modular-woodwork', group: 'Pooja and panels',
+    id: 'pooja-units', name: 'Pooja units (mandir)', categorySlug: 'plywood-timber', group: 'Modular furniture',
     summary: 'Wall-mounted or floor-standing pooja units in wood, with jaali panels and drawers.',
     uses: ['Pooja corner or pooja room'], specs: [],
     variants: [
@@ -103,7 +98,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'jaali-partitions', name: 'CNC jaali and partition panels', categorySlug: 'modular-woodwork', group: 'Pooja and panels',
+    id: 'jaali-partitions', name: 'CNC jaali and partition panels', categorySlug: 'plywood-timber', group: 'Modular furniture',
     summary: 'Cut patterned panels for room partitions, pooja doors, ceilings and wall features.',
     uses: ['Living and dining partitions', 'Pooja doors', 'Feature walls'], specs: [],
     variants: [{ label: 'Material', options: ['MDF', 'HDHMR', 'Plywood', 'Metal (MS or aluminium)'] }],
@@ -113,7 +108,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
 
   // ── Walls & Ceilings ──────────────────────────────────────────────
   {
-    id: 'gypsum-false-ceiling', name: 'Gypsum false ceiling', categorySlug: 'walls-ceilings', group: 'Ceilings',
+    id: 'gypsum-false-ceiling', name: 'Gypsum false ceiling', categorySlug: 'plywood-timber', group: 'Ceilings and wall panels',
     summary: 'Gypsum boards fixed on a galvanised steel frame, for smooth ceilings with cove and spot lights.',
     uses: ['Living rooms and bedrooms', 'Hiding wiring and AC ducts', 'Cove lighting'],
     standard: 'IS 2095 (gypsum plaster boards)', specs: [{ label: 'Board thickness', value: '12.5 mm is the usual ceiling board' }],
@@ -121,20 +116,20 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     soldAs: [{ label: 'Per board' }, { label: 'Per square foot', note: 'installed' }], brands: CEILING_BRANDS, search: 'gypsum false ceiling', aliases: ['gypsum board', 'false ceiling'], image: I('generic'),
   },
   {
-    id: 'grid-ceiling', name: 'Grid ceiling tiles', categorySlug: 'walls-ceilings', group: 'Ceilings',
+    id: 'grid-ceiling', name: 'Grid ceiling tiles', categorySlug: 'plywood-timber', group: 'Ceilings and wall panels',
     summary: 'Lay-in mineral fibre or metal tiles on a T-grid, easy to open for services.',
     uses: ['Offices and shops', 'Basements and utility areas'], specs: [{ label: 'Tile size', value: '600 × 600 mm' }],
     variants: [{ label: 'Tile', options: ['Mineral fibre', 'Metal', 'Gypsum'] }],
     soldAs: [{ label: 'Per box' }, { label: 'Per square foot', note: 'installed' }], brands: ['Armstrong', 'USG Boral'], search: 'grid ceiling tile', image: I('generic'),
   },
   {
-    id: 'pop', name: 'POP (plaster of Paris)', categorySlug: 'walls-ceilings', group: 'Ceilings',
+    id: 'pop', name: 'POP (plaster of Paris)', categorySlug: 'paints-chemicals', group: 'Preparation',
     summary: 'Quick-setting plaster for ceiling designs, cornices and smooth wall finishing.',
     uses: ['Ceiling designs and cornices', 'Wall finishing before paint'], specs: [],
     variants: [], soldAs: [{ label: 'Per bag' }], brands: [], search: 'pop plaster of paris', aliases: ['pop'], image: I('cement'),
   },
   {
-    id: 'pvc-wpc-panels', name: 'PVC and WPC wall panels', categorySlug: 'walls-ceilings', group: 'Wall panels and cladding',
+    id: 'pvc-wpc-panels', name: 'PVC and WPC wall panels', categorySlug: 'plywood-timber', group: 'Ceilings and wall panels',
     summary: 'Ready panels for feature walls and ceilings: fluted, louvred or flat, water-resistant.',
     uses: ['TV and bed back walls', 'Ceilings in balconies and bathrooms'], specs: [],
     variants: [
@@ -144,21 +139,21 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     soldAs: [{ label: 'Per panel' }, { label: 'Per square foot' }], brands: [], search: 'pvc wpc wall panel', aliases: ['louvers', 'fluted panel', 'charcoal panel'], image: I('generic'),
   },
   {
-    id: 'wall-cladding', name: 'Wall cladding (stone and tiles)', categorySlug: 'walls-ceilings', group: 'Wall panels and cladding',
+    id: 'wall-cladding', name: 'Wall cladding (stone and tiles)', categorySlug: 'tiles-flooring', group: 'Wall cladding',
     summary: 'Natural stone strips, brick-look and elevation tiles for feature walls and facades.',
     uses: ['House front elevation', 'Feature walls', 'Compound walls'], specs: [],
     variants: [{ label: 'Type', options: ['Natural stone', 'Brick-look tile', 'Elevation tile', 'Stone-look panel'] }],
     soldAs: [{ label: 'Per square foot' }, { label: 'Per box' }], brands: [], search: 'wall cladding elevation', aliases: ['elevation tiles', 'stone cladding'], image: I('tiles'),
   },
   {
-    id: 'wallpaper', name: 'Wallpaper', categorySlug: 'walls-ceilings', group: 'Wallpaper and finishes',
+    id: 'wallpaper', name: 'Wallpaper', categorySlug: 'paints-chemicals', group: 'Wall finishes',
     summary: 'Printed and textured wall coverings, from vinyl rolls to custom murals.',
     uses: ['Bedroom and living room feature walls', 'Kids\' rooms'], specs: [],
     variants: [{ label: 'Type', options: ['Vinyl', 'Non-woven', 'Custom mural', 'Fabric-backed'] }],
     soldAs: [{ label: 'Per roll' }, { label: 'Per square foot', note: 'murals' }], brands: ['Marshalls', 'Asian Paints'], search: 'wallpaper', image: I('paint'),
   },
   {
-    id: 'texture-finishes', name: 'Texture and designer finishes', categorySlug: 'walls-ceilings', group: 'Wallpaper and finishes',
+    id: 'texture-finishes', name: 'Texture and designer finishes', categorySlug: 'paints-chemicals', group: 'Wall finishes',
     summary: 'Textured paints, metallic and concrete-look finishes applied by trained painters.',
     uses: ['Feature walls', 'Exterior textures'], specs: [],
     variants: [{ label: 'Finish', options: ['Interior texture', 'Exterior texture', 'Metallic', 'Concrete or stone look', 'Lime plaster'] }],
@@ -238,7 +233,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
 
   // ── Doors & Windows ───────────────────────────────────────────────
   {
-    id: 'upvc-windows', name: 'UPVC windows and doors', categorySlug: 'doors-windows', group: 'Windows',
+    id: 'upvc-windows', name: 'UPVC windows and doors', categorySlug: 'plywood-timber', group: 'Windows and glass',
     summary: 'Weather-tight, low-maintenance UPVC frames with glass, made to the opening size.',
     uses: ['Bedrooms and living rooms', 'Balcony sliding doors', 'Homes near traffic (noise)'], specs: [],
     variants: [
@@ -249,7 +244,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'aluminium-windows', name: 'Aluminium windows and partitions', categorySlug: 'doors-windows', group: 'Windows',
+    id: 'aluminium-windows', name: 'Aluminium windows and partitions', categorySlug: 'plywood-timber', group: 'Windows and glass',
     summary: 'Aluminium sliding windows, doors and glass partitions in powder-coated finishes.',
     uses: ['Windows and balcony doors', 'Office and shop partitions'], specs: [],
     variants: [{ label: 'Type', options: ['Sliding window', 'Casement window', 'Sliding door', 'Glass partition'] }],
@@ -257,7 +252,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'main-doors', name: 'Main and designer doors', categorySlug: 'doors-windows', group: 'Doors',
+    id: 'main-doors', name: 'Main and designer doors', categorySlug: 'plywood-timber', group: 'Doors and timber',
     summary: 'Solid wood and engineered main doors with carving, veneer or laminate finish.',
     uses: ['Main entrance', 'Pooja room doors'], specs: [],
     variants: [{ label: 'Material', options: ['Teak wood', 'Solid hardwood', 'Engineered wood with veneer', 'Laminated'] }],
@@ -265,21 +260,21 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'steel-safety-doors', name: 'Steel and safety doors', categorySlug: 'doors-windows', group: 'Doors',
+    id: 'steel-safety-doors', name: 'Steel and safety doors', categorySlug: 'steel-tmt-bars', group: 'Doors and grills',
     summary: 'Galvanised steel doors and safety grill doors, ready with frame and lock.',
     uses: ['Main doors', 'Utility and terrace doors'], specs: [],
     variants: [{ label: 'Type', options: ['Steel door with frame', 'Safety grill door', 'Fire-rated door'] }],
     soldAs: [{ label: 'Per door' }], brands: ['Tata Pravesh', 'Godrej'], search: 'steel door safety door', image: I('steel'),
   },
   {
-    id: 'bathroom-doors', name: 'WPC and PVC doors', categorySlug: 'doors-windows', group: 'Doors',
+    id: 'bathroom-doors', name: 'WPC and PVC doors', categorySlug: 'plywood-timber', group: 'Doors and timber',
     summary: 'Waterproof doors and frames that do not swell, for bathrooms and utility areas.',
     uses: ['Bathrooms', 'Utility rooms'], specs: [],
     variants: [{ label: 'Material', options: ['WPC door', 'PVC door', 'WPC frame'] }],
     soldAs: [{ label: 'Per door' }], brands: [], search: 'wpc door pvc door', aliases: ['bathroom door'], image: I('plywood'),
   },
   {
-    id: 'glass', name: 'Float and toughened glass', categorySlug: 'doors-windows', group: 'Glass and mesh',
+    id: 'glass', name: 'Float and toughened glass', categorySlug: 'plywood-timber', group: 'Windows and glass',
     summary: 'Clear and tinted float glass, toughened glass for doors and partitions, mirrors.',
     uses: ['Windows', 'Shower partitions and railings', 'Table tops and mirrors'],
     standard: 'IS 2553 (safety glass)', specs: [],
@@ -291,7 +286,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: 'Cut to size: the supplier confirms the date after measuring.',
   },
   {
-    id: 'mosquito-mesh', name: 'Mosquito mesh and grills', categorySlug: 'doors-windows', group: 'Glass and mesh',
+    id: 'mosquito-mesh', name: 'Mosquito mesh and grills', categorySlug: 'plywood-timber', group: 'Windows and glass',
     summary: 'Pleated, sliding and magnetic mosquito mesh, and MS or SS window grills.',
     uses: ['Windows and balcony doors'], specs: [],
     variants: [{ label: 'Type', options: ['Pleated mesh', 'Sliding mesh', 'Magnetic mesh', 'MS grill', 'SS grill'] }],
@@ -301,7 +296,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
 
   // ── Bath & Kitchen ────────────────────────────────────────────────
   {
-    id: 'kitchen-sinks', name: 'Kitchen sinks', categorySlug: 'bath-kitchen', group: 'Kitchen',
+    id: 'kitchen-sinks', name: 'Kitchen sinks', categorySlug: 'plumbing', group: 'Kitchen sinks',
     summary: 'Stainless steel and quartz sinks in single, double bowl and drainboard models.',
     uses: ['Kitchen counters', 'Utility areas'], specs: [],
     variants: [
@@ -311,14 +306,14 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     soldAs: [{ label: 'Per piece' }], brands: SINK_BRANDS, search: 'kitchen sink', image: I('plumbing'),
   },
   {
-    id: 'kitchen-chimneys', name: 'Chimneys and hobs', categorySlug: 'bath-kitchen', group: 'Kitchen',
+    id: 'kitchen-chimneys', name: 'Chimneys and hobs', categorySlug: 'electricals', group: 'Lighting and appliances',
     summary: 'Wall-mounted and island chimneys, built-in gas hobs and cooktops.',
     uses: ['Modular kitchens'], specs: [{ label: 'Chimney size', value: '60 cm or 90 cm wide, by hob size' }],
     variants: [{ label: 'Item', options: ['Wall-mounted chimney', 'Island chimney', 'Built-in hob', 'Cooktop'] }],
     soldAs: [{ label: 'Per piece' }], brands: CHIMNEY_BRANDS, search: 'kitchen chimney hob', image: I('electrical'),
   },
   {
-    id: 'shower-partitions', name: 'Shower partitions and enclosures', categorySlug: 'bath-kitchen', group: 'Bathroom',
+    id: 'shower-partitions', name: 'Shower partitions and enclosures', categorySlug: 'plumbing', group: 'Bath and sanitary',
     summary: 'Toughened glass shower partitions, fixed or sliding, made to the bathroom size.',
     uses: ['Separating wet and dry areas'], specs: [],
     variants: [{ label: 'Type', options: ['Fixed panel', 'Hinged door', 'Sliding door', 'Corner enclosure'] }],
@@ -326,14 +321,14 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'vanities-mirrors', name: 'Vanities and mirrors', categorySlug: 'bath-kitchen', group: 'Bathroom',
+    id: 'vanities-mirrors', name: 'Vanities and mirrors', categorySlug: 'plumbing', group: 'Bath and sanitary',
     summary: 'Wall-hung vanity cabinets, countertop basins and LED or plain mirrors.',
     uses: ['Bathrooms and powder rooms'], specs: [],
     variants: [{ label: 'Item', options: ['Vanity cabinet', 'Countertop basin', 'LED mirror', 'Mirror cabinet'] }],
     soldAs: [{ label: 'Per piece' }], brands: BATH_BRANDS, search: 'bathroom vanity mirror', image: I('plumbing'),
   },
   {
-    id: 'bath-accessories', name: 'Bath accessories', categorySlug: 'bath-kitchen', group: 'Bathroom',
+    id: 'bath-accessories', name: 'Bath accessories', categorySlug: 'plumbing', group: 'Bath and sanitary',
     summary: 'Towel rods, shelves, soap dishes, health faucets and floor drains.',
     uses: ['Bathrooms'], specs: [],
     variants: [{ label: 'Item', options: ['Towel rod or ring', 'Shelf', 'Soap dish', 'Health faucet', 'Floor drain'] }],
@@ -342,28 +337,28 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
 
   // ── Roofing & Waterproofing ───────────────────────────────────────
   {
-    id: 'clay-roof-tiles', name: 'Mangalore and clay roof tiles', categorySlug: 'roofing-waterproofing', group: 'Roofing',
+    id: 'clay-roof-tiles', name: 'Mangalore and clay roof tiles', categorySlug: 'bricks-blocks', group: 'Roof tiles',
     summary: 'Kiln-fired clay roof tiles laid on a sloped frame, cool under the sun.',
     uses: ['Sloped roofs', 'Sit-outs and verandahs', 'Decorative roof over a slab'], specs: [],
     variants: [{ label: 'Item', options: ['Mangalore tile', 'Ridge tile', 'Ceiling tile', 'Designer clay tile'] }],
     soldAs: [{ label: 'Per piece' }, { label: 'Per 1,000 pieces' }], brands: [], search: 'mangalore tile roof', aliases: ['mangalore', 'roof tile', 'odu'], image: I('bricks'),
   },
   {
-    id: 'polycarbonate-sheets', name: 'Polycarbonate and FRP sheets', categorySlug: 'roofing-waterproofing', group: 'Roofing',
+    id: 'polycarbonate-sheets', name: 'Polycarbonate and FRP sheets', categorySlug: 'steel-tmt-bars', group: 'Roofing',
     summary: 'Light, clear or tinted sheets for skylights, car porches and terrace covers.',
     uses: ['Car porch roofs', 'Terrace and balcony covers', 'Skylights'], specs: [],
     variants: [{ label: 'Type', options: ['Multiwall polycarbonate', 'Solid polycarbonate', 'Corrugated FRP'] }],
     soldAs: [{ label: 'Per sheet' }, { label: 'Per square foot' }], brands: [], search: 'polycarbonate sheet', aliases: ['fibre sheet'], image: I('steel'),
   },
   {
-    id: 'terrace-waterproofing', name: 'Terrace and roof waterproofing', categorySlug: 'roofing-waterproofing', group: 'Waterproofing',
+    id: 'terrace-waterproofing', name: 'Terrace and roof waterproofing', categorySlug: 'paints-chemicals', group: 'Waterproofing',
     summary: 'Membranes and coatings that stop roof leaks, many with heat-reflective white finish.',
     uses: ['Terraces and roof slabs', 'Water tanks and sunken bathrooms'], specs: [],
     variants: [{ label: 'System', options: ['Liquid (acrylic or PU) membrane', 'APP or SBS sheet membrane', 'Cementitious coating', 'Heat-reflective coating'] }],
     soldAs: [{ label: 'Per pack' }, { label: 'Per square foot', note: 'applied' }], brands: WATERPROOF_BRANDS, search: 'terrace waterproofing', aliases: ['roof leak', 'membrane'], image: I('paint'),
   },
   {
-    id: 'rainwater-gutters', name: 'Gutters and rainwater pipes', categorySlug: 'roofing-waterproofing', group: 'Rainwater',
+    id: 'rainwater-gutters', name: 'Gutters and rainwater pipes', categorySlug: 'plumbing', group: 'Rainwater',
     summary: 'PVC gutters, downpipes and fittings that carry roof water away or to a recharge pit.',
     uses: ['Sloped and sheet roofs', 'Rainwater harvesting'], specs: [],
     variants: [{ label: 'Item', options: ['Gutter', 'Downpipe', 'Gutter fittings', 'Rainwater filter'] }],

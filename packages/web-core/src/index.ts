@@ -35,8 +35,6 @@ export {
   suggestedListingUnit, suggestedListingName,
 } from './catalog/data';
 export { searchCatalog } from './catalog/search';
-export { ROOMS, room, roomSections, roomsFor } from './catalog/rooms';
-export type { Room, RoomSection } from './catalog/rooms';
 export type { CatalogSearch } from './catalog/search';
 export type { CatalogItem, CatalogCategory, Calculator, ListingUnit, Spec, VariantGroup, SoldAs } from './catalog/types';
 export * as units from './catalog/units';
