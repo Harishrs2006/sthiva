@@ -58,14 +58,13 @@ export function Header({ tone = 'light', darkUntilId }: { tone?: 'light' | 'dark
         <nav aria-label="Primary" className="ml-6 hidden items-center gap-1 lg:flex">
           {[
             { href: '/#categories', label: 'Materials' },
-            { href: '/catalogue', label: 'Catalogue' },
             { href: '/#how-it-works', label: 'How it works' },
             { href: '/#suppliers', label: 'For suppliers' },
           ].map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className={`whitespace-nowrap rounded-full px-3.5 py-2 text-[14px] font-medium transition-colors ${
+              className={`rounded-full px-4 py-2 text-[14px] font-medium transition-colors ${
                 dark ? 'text-sand/70 hover:text-sand' : 'text-stone hover:text-ink'
               }`}
             >
@@ -132,7 +131,7 @@ export function Header({ tone = 'light', darkUntilId }: { tone?: 'light' | 'dark
           ) : (
             <Link
               href="/signin"
-              className={`ml-1 hidden whitespace-nowrap rounded-full px-5 py-2.5 text-[14px] font-semibold transition-colors md:inline-flex ${
+              className={`ml-1 hidden rounded-full px-5 py-2.5 text-[14px] font-semibold transition-colors md:inline-flex ${
                 dark ? 'bg-lime text-ink hover:bg-lime-deep' : 'bg-ink text-sand hover:bg-ink-3'
               }`}
             >

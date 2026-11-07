@@ -17,7 +17,7 @@ const BATH_BRANDS = ['Jaquar', 'Hindware', 'Cera', 'Parryware'];
 const WATERPROOF_BRANDS = ['Dr. Fixit', 'Fosroc', 'Sika', 'MYK Laticrete'];
 const CEILING_BRANDS = ['Saint-Gobain Gyproc', 'USG Boral', 'Knauf'];
 
-const MADE_TO_ORDER_NOTE = 'Made to order: the supplier measures your site, quotes a price and confirms the delivery date once the order is accepted.';
+const MADE_TO_ORDER_NOTE = 'Made to order: the supplier may call or visit to confirm sizes, then confirms the delivery date within 24 hours of your order.';
 
 export const INTERIOR_CATEGORIES: CatalogCategory[] = [
   { slug: 'hardware-fittings', name: 'Hardware & Fittings', photo: '/categories/hardware-fittings.jpg', tagline: 'Hinges, channels, handles, kitchen baskets, locks, screws and adhesives.', groups: ['Cabinet and wardrobe fittings', 'Locks and door hardware', 'Fixings and adhesives'] },

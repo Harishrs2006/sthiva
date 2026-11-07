@@ -74,15 +74,9 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             {(meta?.tagline || category?.description) && (
               <p className="mt-5 max-w-xl text-[17px] leading-relaxed text-sand/75">{meta?.tagline ?? category?.description}</p>
             )}
-            <div className="mt-6 flex flex-wrap items-center gap-4">
-              {items.length > 0 && (
-                <p className="font-mono text-[12px] uppercase tracking-[0.16em] text-lime">{items.length} material types</p>
-              )}
-              <Link href={`/catalogue?category=${slug}`} className="inline-flex items-center gap-2 rounded-full bg-sand px-4 py-2 text-[14px] font-semibold text-ink transition-colors hover:bg-lime">
-                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">photo_library</span>
-                See catalogue
-              </Link>
-            </div>
+            {items.length > 0 && (
+              <p className="mt-6 font-mono text-[12px] uppercase tracking-[0.16em] text-lime">{items.length} material types</p>
+            )}
           </div>
         </section>
 

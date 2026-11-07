@@ -14,7 +14,6 @@ import { QuantityHelper } from '@/components/catalog/QuantityHelper';
 import { MaterialCard } from '@/components/catalog/MaterialCard';
 import { useCategories } from '@/lib/categories';
 import { catalogCategory, catalogItem, catalogItems, matchCatalogItem, offerQuery } from '@sthiva/web-core';
-import { MadeToOrderSteps } from '@/components/catalog/MadeToOrderSteps';
 
 function OptionChips({ label, options, value, onChange }: { label: string; options: string[]; value: string | null; onChange: (v: string | null) => void }) {
   return (
@@ -172,15 +171,11 @@ export default function MaterialPage({ params }: { params: Promise<{ id: string 
               </section>
             )}
 
-            {item.madeToOrder ? (
-              <MadeToOrderSteps />
-            ) : (
-              item.note && (
-                <p className="flex items-start gap-3 rounded-2xl bg-[#FFF4D6] px-5 py-4 text-[15px] text-[#5C4300]">
-                  <span className="material-symbols-outlined mt-0.5 text-[20px]" aria-hidden="true">info</span>
-                  {item.note}
-                </p>
-              )
+            {item.note && (
+              <p className="flex items-start gap-3 rounded-2xl bg-[#FFF4D6] px-5 py-4 text-[15px] text-[#5C4300]">
+                <span className="material-symbols-outlined mt-0.5 text-[20px]" aria-hidden="true">info</span>
+                {item.note}
+              </p>
             )}
           </div>
 
