@@ -164,6 +164,11 @@ function OrderCard({ order, onDone }: { order: SupplierOrder; onDone: () => void
               <p className="text-[14px] text-stone">
                 Sthiva offered you this order. Accept only if you can supply every item at this quantity.{left ? ` ${left}.` : ''}
               </p>
+              {order.onOrder && (
+                <p className="rounded-lg bg-[#FFF4D6] px-3 py-2 text-[14px] text-[#5C4300]">
+                  On order: the buyer was told you will confirm the delivery date within 24 hours. Pick the date when you accept.
+                </p>
+              )}
               <div className="flex flex-wrap gap-2">
                 <button type="button" disabled={busy} onClick={() => setConfirming('accept')} className="btn-lime">
                   <span className="material-symbols-outlined text-[20px]" aria-hidden="true">check</span>

@@ -45,6 +45,7 @@ export const supplierOrderSchema = z
     // Your usual delivery time for these listings, and the date you confirmed (YYYY-MM-DD)
     expectedDelivery: z.object({ minDays: z.number(), maxDays: z.number() }).optional(),
     deliveryDate: z.string().optional(),
+    onOrder: z.boolean().optional(),
     createdAt: z.string(),
   })
   .passthrough();

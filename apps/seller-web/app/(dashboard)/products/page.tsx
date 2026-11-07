@@ -94,7 +94,9 @@ function ProductRow({ product, onChange, onDiscontinue }: {
             <p className="mt-0.5 flex flex-wrap gap-x-3 text-[14px] text-stone">
               <span className="font-medium text-ink">{rupees.format(buyerPrice)} / {unit}</span>
               <span>incl. {rate}% GST</span>
-              <span className={product.stockQuantity > 0 ? '' : 'text-error'}>{product.stockQuantity.toLocaleString('en-IN')} {unitLabel(product.unit, product.stockQuantity)} in stock</span>
+              {product.supply === 'ON_ORDER'
+                ? <span>On order</span>
+                : <span className={product.stockQuantity > 0 ? '' : 'text-error'}>{product.stockQuantity.toLocaleString('en-IN')} {unitLabel(product.unit, product.stockQuantity)} in stock</span>}
               {(product.bulkPricing?.length ?? 0) > 0 && <span>{product.bulkPricing!.length} bulk price{product.bulkPricing!.length === 1 ? '' : 's'}</span>}
             </p>
           </div>
@@ -135,10 +137,12 @@ function ProductRow({ product, onChange, onDiscontinue }: {
             <span className="text-[13px] font-semibold">Your price per {unit} (₹)</span>
             <input value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" className="field h-11 w-32 font-mono" autoFocus />
           </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-[13px] font-semibold">In stock ({unitLabel(product.unit, 2)})</span>
-            <input value={stock} onChange={(e) => setStock(e.target.value.replace(/\D/g, ''))} inputMode="numeric" className="field h-11 w-32 font-mono" />
-          </label>
+          {product.supply !== 'ON_ORDER' && (
+            <label className="flex flex-col gap-1">
+              <span className="text-[13px] font-semibold">In stock ({unitLabel(product.unit, 2)})</span>
+              <input value={stock} onChange={(e) => setStock(e.target.value.replace(/\D/g, ''))} inputMode="numeric" className="field h-11 w-32 font-mono" />
+            </label>
+          )}
           <p className="min-w-[160px] flex-1 pb-3 text-[13px] text-stone">
             {Number(price) > 0 && <>Buyers pay {rupees.format(gstBreakdown(Number(price), rate, product.isGstInclusive ?? true)?.total ?? 0)} incl. GST</>}
           </p>

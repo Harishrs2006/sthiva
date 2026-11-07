@@ -5,6 +5,8 @@ import { Order } from '../src/infrastructure/database/models/Order.model';
 import { Product, ON_ORDER_STOCK } from '../src/infrastructure/database/models/Product.model';
 import { SupplierProfile } from '../src/infrastructure/database/models/SupplierProfile.model';
 import { CatalogItem } from '../src/infrastructure/database/models/CatalogItem.model';
+import { importPostalDirectory } from '../src/features/locations/postal-import';
+import { HEADER_RECENT, ROWS_RECENT, csv, chunked } from './fixtures/postal';
 
 const app = makeApp();
 const api = (path: string) => `/api/v1${path}`;
@@ -87,5 +89,28 @@ describe('nearest supplier at the same price', () => {
 
     const res = await place(la._id);
     expect((await Order.findById(res.body.data.orderId).lean())!.supplierId.toString()).toBe(a.profile._id.toString());
+  });
+});
+
+describe('out of area orders', () => {
+  it('Sthiva can offer an out-of-area order to the supplier the buyer picked, who then holds the stock', async () => {
+    await importPostalDirectory({ source: chunked(csv(HEADER_RECENT, ROWS_RECENT), 100), sourceFile: 'test.csv', version: 'test-1' });
+    const operator = await seedUser('operator', { role: 'OPERATOR' });
+    const p = await seedProduct(a.profile._id, { stockQuantity: 50 });
+    const item = (await CatalogItem.create({ name: 'Cement', slug: 'cement-far', categoryId: p.categoryId, unit: 'BAG', createdBy: { role: 'ADMIN' } }))._id;
+    await Product.updateOne({ _id: p._id }, { catalogItemId: item });
+    // a serves no PIN at all, so a PIN order is out of area
+    const res = await request(app).post(api('/orders')).set(buyer.headers).set('Idempotency-Key', newKey())
+      .send({ items: [{ productId: String(p._id), quantity: 5 }], deliveryAddress: { ...SITE, pincode: '572103' } });
+    expect(res.status).toBe(201);
+    const id = res.body.data.orderId as string;
+    expect((await Order.findById(id).lean())!).toMatchObject({ outOfArea: true, allocation: { state: 'NEEDS_OPS' } });
+    expect((await Product.findById(p._id).lean())!.stockQuantity).toBe(50);
+
+    const offered = await request(app).post(api(`/ops/orders/${id}/offer`)).set(operator.headers)
+      .send({ supplierId: String(a.profile._id), reason: 'Supplier agreed on the phone to deliver there' });
+    expect(offered.status).toBe(200);
+    expect((await Order.findById(id).lean())!).toMatchObject({ allocation: { state: 'OFFERED' }, inventoryState: 'DEDUCTED' });
+    expect((await Product.findById(p._id).lean())!.stockQuantity).toBe(45);
   });
 });

@@ -185,7 +185,11 @@ export function ProductForm({ product, template, brands = [], sells = [] }: { pr
   const [tiers, setTiers] = useState<{ minQty: string; price: string }[]>(
     (start?.bulkPricing ?? []).map((t) => ({ minQty: String(t.minQty), price: String(t.price) }))
   );
-  const [stockQuantity, setStockQuantity] = useState(product ? String(product.stockQuantity) : '');
+  // IN_STOCK: you have it. ON_ORDER: you order it from the company or make it; buyers are told it is in
+  // process and you confirm the date within 24 hours
+  const [supply, setSupply] = useState<'IN_STOCK' | 'ON_ORDER'>(product?.supply === 'ON_ORDER' ? 'ON_ORDER' : 'IN_STOCK');
+  const onOrder = supply === 'ON_ORDER';
+  const [stockQuantity, setStockQuantity] = useState(product && product.supply !== 'ON_ORDER' ? String(product.stockQuantity) : '');
   const [lowStockAlert, setLowStockAlert] = useState(start?.lowStockAlert !== undefined ? String(start.lowStockAlert) : '10');
   const [minOrderQuantity, setMinOrderQuantity] = useState(start?.minOrderQuantity ? String(start.minOrderQuantity) : '1');
   const [deliveryDays, setDeliveryDays] = useState(start?.deliveryDays !== undefined ? String(start.deliveryDays) : '2');
@@ -336,7 +340,9 @@ export function ProductForm({ product, template, brands = [], sells = [] }: { pr
       gstRate,
       isGstInclusive: inclusive,
       bulkPricing: tierValues,
-      stockQuantity: stockQuantity === '' ? 0 : Number(stockQuantity),
+      supply,
+      // On order never runs out (the server keeps it available); in stock needs a real figure
+      ...(onOrder ? {} : { stockQuantity: stockQuantity === '' ? 0 : Number(stockQuantity) }),
       lowStockAlert: lowStockAlert === '' ? 0 : Number(lowStockAlert),
       minOrderQuantity: Number(minOrderQuantity),
       deliveryDays: Number(deliveryDays),
@@ -350,7 +356,7 @@ export function ProductForm({ product, template, brands = [], sells = [] }: { pr
         const { categoryId: _c, ...edits } = input;
         // Publishing a draft makes it live (or out of stock); other edits keep the current status
         const status = mode === 'draft' ? 'DRAFT'
-          : product!.status === 'DRAFT' ? ((input.stockQuantity ?? 0) > 0 ? 'ACTIVE' : 'OUT_OF_STOCK')
+          : product!.status === 'DRAFT' ? (onOrder || (input.stockQuantity ?? 0) > 0 ? 'ACTIVE' : 'OUT_OF_STOCK')
           : undefined;
         saved = await updateSupplierProduct(client, product!._id, status ? { ...edits, status } : edits);
       } else {
@@ -373,7 +379,7 @@ export function ProductForm({ product, template, brands = [], sells = [] }: { pr
       gstRate={gstRate}
       inclusive={inclusive}
       tiers={tierValues}
-      stock={isWhole(stockQuantity) ? Number(stockQuantity) : 0}
+      stock={onOrder ? 1 : isWhole(stockQuantity) ? Number(stockQuantity) : 0}
       minOrder={minOrder}
       deliveryDays={isWhole(deliveryDays) ? Number(deliveryDays) : 0}
       deliveryDaysMax={isWhole(deliveryDaysMax) ? Number(deliveryDaysMax) : 0}
@@ -617,13 +623,30 @@ export function ProductForm({ product, template, brands = [], sells = [] }: { pr
         </Step>
 
         <Step n={++n} title="Stock and delivery">
+          <div className="mb-5 flex flex-col gap-2">
+            <Segmented
+              label="Do you have it?"
+              value={supply}
+              onChange={(v) => { touch(); setSupply(v); }}
+              options={[{ value: 'IN_STOCK', label: 'In stock with me' }, { value: 'ON_ORDER', label: 'On order (from the company or made to order)' }]}
+            />
+            <p className="text-[13px] text-stone">
+              {onOrder
+                ? 'Buyers can order any quantity. Their order shows "in process" and you confirm the delivery date within 24 hours.'
+                : 'Buyers see your stock and your usual delivery time.'}
+            </p>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={`In stock now (${unitMany})`} hint="Buyers can't order more than this. 0 shows it as out of stock." error={show('stock')}>
-              <input type="number" inputMode="numeric" min="0" step="1" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} placeholder="0" className="field font-mono" />
-            </Field>
-            <Field label={`Warn me below (${unitMany})`} hint="Your Stock page flags it when stock falls to this." error={show('lowStock')}>
-              <input type="number" inputMode="numeric" min="0" step="1" value={lowStockAlert} onChange={(e) => setLowStockAlert(e.target.value)} className="field font-mono" />
-            </Field>
+            {!onOrder && (
+              <>
+                <Field label={`In stock now (${unitMany})`} hint="Buyers can't order more than this. 0 shows it as out of stock." error={show('stock')}>
+                  <input type="number" inputMode="numeric" min="0" step="1" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} placeholder="0" className="field font-mono" />
+                </Field>
+                <Field label={`Warn me below (${unitMany})`} hint="Your Stock page flags it when stock falls to this." error={show('lowStock')}>
+                  <input type="number" inputMode="numeric" min="0" step="1" value={lowStockAlert} onChange={(e) => setLowStockAlert(e.target.value)} className="field font-mono" />
+                </Field>
+              </>
+            )}
             <Field label={`Minimum order (${unitMany})`} error={show('minOrder')}>
               <input type="number" inputMode="numeric" min="1" step="1" value={minOrderQuantity} onChange={(e) => setMinOrderQuantity(e.target.value)} className="field font-mono" />
             </Field>
