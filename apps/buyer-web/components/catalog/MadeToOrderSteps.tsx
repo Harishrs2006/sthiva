@@ -2,9 +2,9 @@
 // known when the buyer orders. The listing shows the supplier's usual time; the supplier confirms the
 // actual date when they accept the order.
 const STEPS = [
-  { icon: 'shopping_bag', title: 'You place the order', body: 'Each listing shows how long that supplier usually takes, for example 2 to 3 weeks.' },
-  { icon: 'straighten', title: 'The supplier checks the details', body: 'They may call to confirm sizes and finish, or visit your site to measure, before accepting.' },
-  { icon: 'event_available', title: 'You get a confirmed date', body: 'Once the supplier accepts, your order page shows the confirmed delivery date.' },
+  { icon: 'shopping_bag', title: 'You place the order', body: 'Your order is in process. Nothing to pay now: cash on delivery.' },
+  { icon: 'straighten', title: 'The supplier checks the details', body: 'They may call to confirm sizes and finish, or visit your site to measure.' },
+  { icon: 'event_available', title: 'Date confirmed within 24 hours', body: 'The supplier confirms the delivery date and you are notified. Your order page shows it.' },
 ];
 
 export function MadeToOrderSteps() {

@@ -30,6 +30,9 @@ export const quoteSchema = z.object({
   total: z.number(),
   // Usual delivery time of the listings (days after the supplier accepts)
   expectedDelivery: z.object({ minDays: z.number(), maxDays: z.number() }).optional(),
+  // In process until confirmed: something is ordered from the company / made, or no supplier serves the PIN yet
+  onOrder: z.boolean().optional(),
+  outOfArea: z.boolean().optional(),
 });
 export type Quote = z.infer<typeof quoteSchema>;
 
@@ -115,6 +118,8 @@ export const orderSchema = z
     // Usual delivery time, then the date the supplier confirmed (YYYY-MM-DD) once they accept
     expectedDelivery: z.object({ minDays: z.number(), maxDays: z.number() }).optional(),
     deliveryDate: z.string().optional(),
+    onOrder: z.boolean().optional(),
+    outOfArea: z.boolean().optional(),
     createdAt: z.string(),
   })
   .passthrough();

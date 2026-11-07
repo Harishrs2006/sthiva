@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { deliveryTimePhrase, useApiClient, useSelectedLocation } from '@sthiva/web-core';
+import { buyerDeliveryPhrase, useApiClient, useSelectedLocation } from '@sthiva/web-core';
 import { Header } from '@/components/Header';
 import { BottomNav } from '@/components/BottomNav';
 import { RequireAuth } from '@/components/auth/RequireAuth';
@@ -68,7 +68,8 @@ function CheckoutForm() {
     );
   }
 
-  const notServiceable = quote.status === 'success' && quote.data.delivery !== null && !quote.data.delivery.serviceable;
+  // Out of area is allowed (Sthiva finds a supplier); any other not-serviceable answer blocks the order
+  const notServiceable = quote.status === 'success' && quote.data.delivery !== null && !quote.data.delivery.serviceable && !quote.data.outOfArea;
   const canPlace =
     !placing && quote.status === 'success' && !notServiceable && quote.data.deliveryPricing?.status !== 'UNPRICED' && fullAddress.trim().length >= 5 && /^[6-9]\d{9}$/.test(contactPhone);
 
@@ -215,11 +216,21 @@ function CheckoutForm() {
                   <SummaryRow strong label="Total" value={rupees.format(quote.data.total)} />
                 </div>
               </div>
-              {quote.data.expectedDelivery && (
+              {(quote.data.outOfArea || quote.data.onOrder) ? (
+                <p className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/[0.06] px-4 py-3 text-[14px] text-sand/80">
+                  <span className="material-symbols-outlined mt-0.5 text-[18px] text-lime" aria-hidden="true">pending</span>
+                  <span>
+                    <strong className="font-semibold text-sand">Your order will be in process.</strong>{' '}
+                    {quote.data.outOfArea
+                      ? 'No supplier delivers to your PIN yet. Sthiva finds one and tells you the delivery date and charge within 24 hours. You can cancel if it does not suit you.'
+                      : 'Something here is ordered from the company or made for you. The supplier confirms the delivery date within 24 hours and you will be notified.'}
+                  </span>
+                </p>
+              ) : quote.data.expectedDelivery && (
                 <p className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/[0.06] px-4 py-3 text-[14px] text-sand/80">
                   <span className="material-symbols-outlined mt-0.5 text-[18px] text-lime" aria-hidden="true">event</span>
                   <span>
-                    Usually delivered <strong className="font-semibold text-sand">{deliveryTimePhrase(quote.data.expectedDelivery.minDays, quote.data.expectedDelivery.maxDays)}</strong> after
+                    Usually delivered <strong className="font-semibold text-sand">{buyerDeliveryPhrase(quote.data.expectedDelivery.minDays, quote.data.expectedDelivery.maxDays)}</strong> after
                     the supplier accepts. They confirm the exact date then, and your order page shows it.
                   </span>
                 </p>

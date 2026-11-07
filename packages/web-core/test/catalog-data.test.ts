@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { CATALOG, CATALOG_CATEGORIES, catalogItem } from '../src/catalog/data';
 import { searchCatalog } from '../src/catalog/search';
-import { deliveryTimeLabel, deliveryTimePhrase, formatDeliveryDate, istDate } from '../src/delivery';
+import { buyerDeliveryPhrase, deliveryTimeLabel, deliveryTimePhrase, formatDeliveryDate, istDate } from '../src/delivery';
 
 const PUBLIC = path.join(__dirname, '../../../apps/buyer-web/public');
 
@@ -67,5 +67,16 @@ describe('delivery wording', () => {
     expect([deliveryTimePhrase(0, 0), deliveryTimePhrase(0, 2), deliveryTimePhrase(14, 21)]).toEqual(['the same day', 'within 2 days', 'in 2 to 3 weeks']);
     expect(formatDeliveryDate('2026-11-12')).toMatch(/Thu.*12.*Nov/);
     expect(istDate(0, new Date('2026-11-06T20:00:00Z'))).toBe('2026-11-07'); // 01:30 IST next day
+  });
+});
+
+describe('what buyers are told', () => {
+  it('a single number gets one day of slack; ranges and weeks stay', () => {
+    expect(buyerDeliveryPhrase(2)).toBe('in 2 to 3 days');
+    expect(buyerDeliveryPhrase(2, 2)).toBe('in 2 to 3 days');
+    expect(buyerDeliveryPhrase(2, 4)).toBe('in 2 to 4 days');
+    expect(buyerDeliveryPhrase(0, 0)).toBe('the same day or next day');
+    expect(buyerDeliveryPhrase(14, 21)).toBe('in 2 to 3 weeks');
+    expect(buyerDeliveryPhrase(14, 14)).toBe('in 2 weeks');
   });
 });

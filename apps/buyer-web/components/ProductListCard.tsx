@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { ProductSummary } from '@sthiva/web-core';
+import { buyerDeliveryRange, deliveryTimeLabel, type ProductSummary } from '@sthiva/web-core';
 import { illustrationFor } from '@/lib/illustrations';
 
 type ProductExtras = {
@@ -8,25 +8,30 @@ type ProductExtras = {
   sellerCount?: number; // suppliers selling this item (Sthiva picks one at order time)
   categoryId?: { name?: string };
   deliveryDays?: number;
+  deliveryDaysMax?: number;
+  supply?: 'IN_STOCK' | 'ON_ORDER';
+  distanceKm?: number | null;
   avgRating?: number;
   totalReviews?: number;
 };
 
 const rupees = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 });
 
-// Supplier-provided estimate; shown only when the listing has one
-function deliveryLabel(days?: number): string | null {
-  if (days === undefined) return null;
-  if (days <= 1) return 'Within 24h';
-  if (days < 7) return `${days} days`;
-  return `${Math.round(days / 7)} weeks`;
+// The supplier's usual time as buyers see it (a single number gets a day of slack); on-order items have
+// no fixed time until the supplier confirms
+function deliveryLabel(p: ProductExtras): string | null {
+  if (p.supply === 'ON_ORDER') return 'On order, date confirmed in 24h';
+  if (p.deliveryDays === undefined) return null;
+  const r = buyerDeliveryRange(p.deliveryDays, p.deliveryDaysMax);
+  return r.min === 0 && r.max === 1 ? 'Same or next day' : deliveryTimeLabel(r.min, r.max);
 }
 
 export function ProductListCard({ product }: { product: ProductSummary }) {
   const extra = product as ProductSummary & ProductExtras;
   const image = extra.images?.find((i) => i.isPrimary) ?? extra.images?.[0];
   const rated = (extra.totalReviews ?? 0) > 0 && extra.avgRating !== undefined;
-  const delivery = deliveryLabel(extra.deliveryDays);
+  const delivery = deliveryLabel(extra);
+  const km = typeof extra.distanceKm === 'number' ? extra.distanceKm : null;
 
   return (
     <Link
@@ -69,6 +74,7 @@ export function ProductListCard({ product }: { product: ProductSummary }) {
       <div className="flex flex-1 flex-col px-5 pb-5 pt-3">
         <h3 className="font-display text-[20px] font-semibold leading-tight tracking-[-0.02em] text-ink">{product.name}</h3>
         {(extra.sellerCount ?? 0) > 1 && <p className="mt-1 text-[14px] text-stone">{extra.sellerCount} verified suppliers</p>}
+        {km !== null && <p className="mt-1 text-[13px] text-stone">About {km < 1 ? '1' : Math.round(km)} km from your site</p>}
 
         <div className="mt-auto flex items-end justify-between gap-3 pt-6">
           <div>

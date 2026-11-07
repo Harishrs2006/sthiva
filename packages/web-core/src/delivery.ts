@@ -24,6 +24,23 @@ export function deliveryTimePhrase(minDays: number | null | undefined, maxDays?:
   return `in ${label}`;
 }
 
+/**
+ * What a buyer is told for a seller's usual time: a single number becomes a range with one day of
+ * slack ("2" reads "2 to 3 days"), so a normal delay is not a broken promise. Weeks stay as given.
+ */
+export function buyerDeliveryRange(minDays: number | null | undefined, maxDays?: number | null): { min: number; max: number } {
+  const min = Math.max(0, minDays ?? 2);
+  const max = Math.max(min, maxDays ?? min);
+  return { min, max: max > min || min >= 14 ? max : min + 1 };
+}
+
+/** Buyer sentence: "in 2 to 3 days", "the same day or next day", "in 2 to 3 weeks". */
+export function buyerDeliveryPhrase(minDays: number | null | undefined, maxDays?: number | null): string {
+  const r = buyerDeliveryRange(minDays, maxDays);
+  if (r.min === 0 && r.max === 1) return 'the same day or next day';
+  return deliveryTimePhrase(r.min, r.max);
+}
+
 /** "Tue, 12 Nov" for a YYYY-MM-DD date (a calendar date in India, no time zone shift). */
 export function formatDeliveryDate(date: string): string {
   return new Date(`${date}T00:00:00Z`).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });

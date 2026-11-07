@@ -35,7 +35,7 @@ async function forBuyers<T extends { categoryId: unknown; basePrice: number; bul
 
 export async function listProducts(req: Request, res: Response, next: NextFunction) {
   try {
-    const { category, sort: sortParam, q, page = '1', limit = '20', pincode } = req.query as Record<string, string>;
+    const { category, sort: sortParam, q, page = '1', limit = '20', pincode, withPhotos } = req.query as Record<string, string>;
 
     let destination: Destination | undefined;
     if (pincode !== undefined) destination = await resolveDestination(pincode);
@@ -52,6 +52,8 @@ export async function listProducts(req: Request, res: Response, next: NextFuncti
     if (q) {
       filter.$text = { $search: q };
     }
+    // The Catalogue shows only listings with the seller's own photos
+    if (withPhotos === '1' || withPhotos === 'true') filter['images.0'] = { $exists: true };
 
     // With a PIN, sellers nearest the site come first (then the most sold); without one, the most sold
     const drop = destination ? await deliveryPoint({ pincode: destination.pincode }) : null;

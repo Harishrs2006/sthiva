@@ -29,6 +29,10 @@ export const productDetailSchema = z
     stockQuantity: z.number().optional(),
     deliveryDays: z.number().optional(),
     deliveryDaysMax: z.number().optional(),
+    // IN_STOCK, or ON_ORDER (company order or made for you: in process until the supplier confirms)
+    supply: z.enum(['IN_STOCK', 'ON_ORDER']).optional(),
+    // Straight-line km from the buyer's PIN to this supplier (lists with a PIN only)
+    distanceKm: z.number().nullable().optional(),
     specifications: z.record(z.string(), z.string()).optional(),
     images: z.array(imageSchema).optional(),
     supplierId: supplierSchema.nullable().optional(),

@@ -11,7 +11,10 @@ export type ProductQuery = {
   q?: string;
   page?: number;
   limit?: number;
-  sort?: 'popular' | 'price_asc' | 'price_desc' | 'newest';
+  // 'nearby' (default with a PIN): suppliers nearest the site first
+  sort?: 'nearby' | 'popular' | 'price_asc' | 'price_desc' | 'newest';
+  // Only listings with the seller's own photos (the Catalogue)
+  withPhotos?: boolean;
 };
 
 /**
@@ -25,7 +28,7 @@ export async function fetchProducts(
 ): Promise<ProductList> {
   const { pincode, ...rest } = params;
   const list = await client.request('/products', {
-    query: { ...rest, pincode: pincode ?? undefined },
+    query: { ...rest, withPhotos: rest.withPhotos ? 1 : undefined, pincode: pincode ?? undefined },
     schema: productListSchema,
     envelope: false,
     signal,
@@ -51,7 +54,7 @@ export function useProductsForLocation(query: ProductQuery = {}, options: { pinc
   const client = useApiClient();
   const selected = useSelectedLocation();
   const pincode = options.pincode !== undefined ? options.pincode : selected?.pincode ?? null;
-  const { category, q, page, limit, sort } = query;
+  const { category, q, page, limit, sort, withPhotos } = query;
   const [nonce, setNonce] = useState(0);
   const [state, setState] = useState<ProductsState>({ status: 'loading', pincode });
   const latest = useRef(0);
@@ -61,7 +64,7 @@ export function useProductsForLocation(query: ProductQuery = {}, options: { pinc
     const controller = new AbortController();
     // Never show the previous PIN's products under the new PIN
     setState({ status: 'loading', pincode });
-    fetchProducts(client, { pincode, category, q, page, limit, sort }, controller.signal)
+    fetchProducts(client, { pincode, category, q, page, limit, sort, withPhotos }, controller.signal)
       .then((data) => {
         if (id !== latest.current) return;
         setState({ status: 'success', pincode, data });
@@ -71,7 +74,7 @@ export function useProductsForLocation(query: ProductQuery = {}, options: { pinc
         setState({ status: 'error', pincode, error: err });
       });
     return () => controller.abort();
-  }, [client, pincode, category, q, page, limit, sort, nonce]);
+  }, [client, pincode, category, q, page, limit, sort, withPhotos, nonce]);
 
   const refetch = useCallback(() => setNonce((n) => n + 1), []);
   return { ...state, refetch };

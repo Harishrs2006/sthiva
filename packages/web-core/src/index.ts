@@ -44,4 +44,4 @@ export { SthivaLogo, SthivaMark } from './brand/SthivaLogo';
 export { MARK, WORD_STHIVA, WORD_PARTNER, BRAND_COLORS } from './brand/paths';
 
 // Delivery time wording (listing ranges, confirmed dates)
-export { deliveryTimeLabel, deliveryTimePhrase, formatDeliveryDate, istDate, DELIVERY_TIME_PRESETS } from './delivery';
+export { buyerDeliveryPhrase, buyerDeliveryRange, deliveryTimeLabel, deliveryTimePhrase, formatDeliveryDate, istDate, DELIVERY_TIME_PRESETS } from './delivery';

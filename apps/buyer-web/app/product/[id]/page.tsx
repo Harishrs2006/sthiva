@@ -12,7 +12,7 @@ import { QuantityHelper } from '@/components/catalog/QuantityHelper';
 import { useProduct } from '@/lib/products';
 import { useSupplierReviews } from '@/lib/reviews';
 import { addToCart } from '@/lib/cart';
-import { deliveryTimePhrase, matchCatalogItem } from '@sthiva/web-core';
+import { buyerDeliveryPhrase, matchCatalogItem } from '@sthiva/web-core';
 import { rupees } from '@/lib/format';
 
 const relativeDate = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
@@ -68,7 +68,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const tiers = data?.bulkPricing?.slice().sort((a, b) => a.minQty - b.minQty) ?? [];
   const catalog = data ? matchCatalogItem(data.name, data.categoryId?.slug) : undefined;
   const inStock = (data?.stockQuantity ?? 0) > 0;
-  const blockedByPin = !!(location && data?.availability && !data.availability.deliverable);
+  const onOrder = data?.supply === 'ON_ORDER';
+  const notDeliverable = !!(location && data?.availability && !data.availability.deliverable);
+  // No supplier serves this PIN yet: the order is still taken and Sthiva finds a supplier (in process)
+  const outOfArea = notDeliverable && data?.availability?.reason === 'PINCODE_NOT_SERVED';
+  const blockedByPin = notDeliverable && !outOfArea;
   const unit = data ? unitLabel(data.unit) : '';
   const canBuy = inStock && !blockedByPin;
 
@@ -224,19 +228,30 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                   )}
                   <p className={`mt-4 flex items-center gap-1.5 text-[14px] ${inStock ? 'text-lime' : 'text-signal-red'}`}>
-                    <span className="material-symbols-outlined text-[18px]" aria-hidden="true">{inStock ? 'inventory' : 'block'}</span>
-                    {inStock ? 'In stock with this supplier' : 'Out of stock'}
+                    <span className="material-symbols-outlined text-[18px]" aria-hidden="true">{onOrder ? 'local_shipping' : inStock ? 'inventory' : 'block'}</span>
+                    {onOrder ? 'On order: the supplier gets it from the company or makes it for you' : inStock ? 'In stock with this supplier' : 'Out of stock'}
                   </p>
-                  {inStock && data.deliveryDays !== undefined && (
+                  {inStock && data.deliveryDays !== undefined && !onOrder && !outOfArea && (
                     <p className="mt-2 flex items-center gap-1.5 text-[14px] text-stone-light">
                       <span className="material-symbols-outlined text-[18px]" aria-hidden="true">schedule</span>
-                      Usually delivered {deliveryTimePhrase(data.deliveryDays, data.deliveryDaysMax)} after the supplier accepts
+                      Usually delivered {buyerDeliveryPhrase(data.deliveryDays, data.deliveryDaysMax)} after the supplier accepts
+                    </p>
+                  )}
+                  {(onOrder || outOfArea) && (
+                    <p className="mt-2 flex items-start gap-1.5 text-[14px] text-stone-light">
+                      <span className="material-symbols-outlined mt-0.5 text-[18px]" aria-hidden="true">pending</span>
+                      <span>
+                        Your order will be in process.{' '}
+                        {outOfArea
+                          ? 'No supplier delivers to your PIN yet; Sthiva finds one and tells you the date within 24 hours.'
+                          : 'The supplier confirms the delivery date within 24 hours and you will be notified.'}
+                      </span>
                     </p>
                   )}
                 </section>
 
                 {/* delivery check, right where the decision is made */}
-                <DeliveryCheck availability={location ? data.availability : undefined} title="Delivery to your site" />
+                {!outOfArea && <DeliveryCheck availability={location ? data.availability : undefined} title="Delivery to your site" />}
 
                 {/* quantity */}
                 <section className="rounded-2xl border border-sand-4 bg-sand-2 p-5" aria-labelledby="qty-title">
