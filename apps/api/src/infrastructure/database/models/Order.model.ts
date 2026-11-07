@@ -87,6 +87,10 @@ export interface IOrder extends Document {
   // Calendar date (YYYY-MM-DD, India) the supplier confirmed; can be changed later, buyer is told
   deliveryDate?: string;
   deliveryDateSetAt?: Date;
+  // Something in the order is made or ordered from the company for the buyer: in process until the supplier confirms
+  onOrder?: boolean;
+  // No supplier delivers to this PIN yet: Sthiva's team finds one (allocation NEEDS_OPS), the buyer is told within 24 hours
+  outOfArea?: boolean;
   deliveryMethod: 'STANDARD' | 'EXPRESS';
   deliveryCharge: number;
   // How the delivery charge was worked out (absent when delivery pricing was off)
@@ -211,6 +215,8 @@ const orderSchema = new Schema<IOrder>(
     expectedDelivery: { minDays: Number, maxDays: Number },
     deliveryDate: { type: String, match: /^\d{4}-\d{2}-\d{2}$/ },
     deliveryDateSetAt: Date,
+    onOrder: Boolean,
+    outOfArea: Boolean,
     driverOffer: {
       state: { type: String, enum: ['OFFERED', 'ASSIGNED', 'NEEDS_OPS'] },
       driverUserId: { type: Schema.Types.ObjectId, ref: 'User' },

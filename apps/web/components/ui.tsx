@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 
 export const rupees = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 });
 export const UNIT: Record<string, string> = {
-  KG: 'kg', TON: 'tonne', PIECE: 'piece', BAG: 'bag', BUNDLE: 'bundle', CUBIC_METER: 'm³', SQUARE_METER: 'm²', LITER: 'litre', METER: 'metre',
+  KG: 'kg', TON: 'tonne', PIECE: 'piece', BAG: 'bag', BUNDLE: 'bundle', CUBIC_METER: 'm³', SQUARE_METER: 'm²', LITER: 'litre', METER: 'metre', BOX: 'box', SHEET: 'sheet',
 };
 export const shortDate = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
 

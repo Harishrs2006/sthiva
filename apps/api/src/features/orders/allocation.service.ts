@@ -26,6 +26,7 @@ import { priceLine, toPaise, PricingError } from './pricing';
 import { expireDriverOffers } from '../delivery/driver-offers';
 import { sendWeeklyReminders } from '../suppliers/weekly';
 import { checkDeliveryDate, deliveryWindow } from './delivery-window';
+import { deliveryPoint, distanceKm } from '../delivery/delivery-pricing';
 
 type LeanOrder = IOrder & { _id: Types.ObjectId };
 type Outcome = 'REJECTED' | 'EXPIRED' | 'WITHDRAWN';
@@ -97,6 +98,18 @@ async function canServe(supplierId: Types.ObjectId, order: LeanOrder, session: C
   return r.serviceable;
 }
 
+/** Straight-line km from each supplier's pickup point to the site (Infinity when either is unknown). */
+export async function supplierDistances(ids: Types.ObjectId[], to: { lat: number; lng: number } | null, session?: ClientSession) {
+  const profiles = to && ids.length
+    ? await SupplierProfile.find({ _id: { $in: ids } }).select('location').session(session ?? null).lean()
+    : [];
+  const at = new Map(profiles.map((p) => [p._id.toString(), p.location]));
+  return (id: Types.ObjectId | string) => {
+    const from = at.get(id.toString());
+    return to && from && typeof from.lat === 'number' && typeof from.lng === 'number' ? distanceKm({ lat: from.lat, lng: from.lng }, to) : Infinity;
+  };
+}
+
 /** Best next supplier for the order, or null. */
 async function findNextSupplier(order: LeanOrder, session: ClientSession) {
   const tried = (order.allocation?.attempts ?? []).map((a) => a.supplierId.toString());
@@ -109,7 +122,10 @@ async function findNextSupplier(order: LeanOrder, session: ClientSession) {
     const m = matchLines(order, own, true);
     if (m) options.push({ supplierId: new Types.ObjectId(sid), ...m });
   }
-  options.sort((a, b) => a.totalPaise - b.totalPaise);
+  // Cheapest first; at the same price, the supplier nearest the site
+  const drop = await deliveryPoint(order.deliveryAddress);
+  const km = await supplierDistances(options.map((o) => o.supplierId), drop, session);
+  options.sort((a, b) => a.totalPaise - b.totalPaise || km(a.supplierId) - km(b.supplierId));
   for (const o of options) {
     if (await canServe(o.supplierId, order, session)) return o;
   }
@@ -234,6 +250,8 @@ function afterMove(moved: Moved | null) {
 
 /** The first offer, right after the order is created. */
 export function announceNewOrder(order: LeanOrder) {
+  // Out of area: nobody is offered it yet; Sthiva's team finds a supplier from the ops queue
+  if (order.allocation?.state !== 'OFFERED') return;
   notifyOffer(order, order.supplierId);
 }
 

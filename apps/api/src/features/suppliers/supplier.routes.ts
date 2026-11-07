@@ -49,7 +49,7 @@ export const updateProfileSchema = z
 
 // GST slabs in force for building materials (cement, steel, tiles, paint, pipes, wires...)
 export const GST_RATES = [0, 5, 12, 18, 28] as const;
-export const PRODUCT_UNITS = ['KG', 'TON', 'PIECE', 'BAG', 'BUNDLE', 'CUBIC_METER', 'SQUARE_METER', 'LITER', 'METER'] as const;
+export const PRODUCT_UNITS = ['KG', 'TON', 'PIECE', 'BAG', 'BUNDLE', 'CUBIC_METER', 'SQUARE_METER', 'LITER', 'METER', 'BOX', 'SHEET'] as const;
 const objectId = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid ID');
 
 const productFields = {
@@ -69,6 +69,7 @@ const productFields = {
   // Usual delivery time after accepting an order, as a range of days (woodwork can take weeks)
   deliveryDays: z.number().int().min(0).max(90),
   deliveryDaysMax: z.number().int().min(0).max(90),
+  supply: z.enum(['IN_STOCK', 'ON_ORDER']),
   lowStockAlert: z.number().int().min(0).max(10_000_000),
   tags: z.array(z.string().trim().min(1).max(40)).max(20),
   specifications: z.record(z.string().trim().min(1).max(60), z.string().trim().max(200))
@@ -95,7 +96,7 @@ export const createProductSchema = z
     status: z.enum(['DRAFT', 'ACTIVE']),
   })
   .partial({ catalogItemId: true, brand: true, shortDescription: true, gstRate: true, isGstInclusive: true, stockQuantity: true, minOrderQuantity: true,
-    deliveryDays: true, deliveryDaysMax: true, lowStockAlert: true, tags: true, specifications: true, images: true, bulkPricing: true, status: true })
+    deliveryDays: true, deliveryDaysMax: true, supply: true, lowStockAlert: true, tags: true, specifications: true, images: true, bulkPricing: true, status: true })
   .strict()
   .superRefine((v, ctx) => {
     const problem = bulkPricingProblem(v.bulkPricing, v.basePrice, v.minOrderQuantity);

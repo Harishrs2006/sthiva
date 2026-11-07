@@ -211,7 +211,7 @@ export const settingsApi = {
 };
 
 // Sthiva catalog (ops). Shapes mirror catalog.controller.ts.
-export const UNITS = ['BAG', 'TON', 'KG', 'PIECE', 'BUNDLE', 'CUBIC_METER', 'SQUARE_METER', 'LITER', 'METER'] as const;
+export const UNITS = ['BAG', 'TON', 'KG', 'PIECE', 'BUNDLE', 'CUBIC_METER', 'SQUARE_METER', 'LITER', 'METER', 'BOX', 'SHEET'] as const;
 export const catalogItemSchema = z
   .object({
     _id: z.string(),

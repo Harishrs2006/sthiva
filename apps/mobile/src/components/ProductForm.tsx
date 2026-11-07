@@ -19,6 +19,8 @@ export const UNITS: { value: string; label: string }[] = [
   { value: 'SQUARE_METER', label: 'm²' },
   { value: 'LITER', label: 'litre' },
   { value: 'METER', label: 'metre' },
+  { value: 'BOX', label: 'box' },
+  { value: 'SHEET', label: 'sheet' },
 ];
 const GST_RATES = [0, 5, 12, 18, 28];
 

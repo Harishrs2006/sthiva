@@ -22,6 +22,8 @@ const UNITS: { value: string; label: string; short: string }[] = [
   { value: 'SQUARE_METER', label: 'Square metre (m²)', short: 'm²' },
   { value: 'LITER', label: 'Litre', short: 'litre' },
   { value: 'METER', label: 'Metre', short: 'metre' },
+  { value: 'BOX', label: 'Box', short: 'box' },
+  { value: 'SHEET', label: 'Sheet', short: 'sheet' },
 ];
 
 // specifications keys written by this form (the storefront shows them as the spec table)

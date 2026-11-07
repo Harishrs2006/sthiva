@@ -302,14 +302,15 @@ describe('quote and order serviceability', () => {
   });
   afterEach(() => { env.ORDERS_REQUIRE_DELIVERY_PINCODE = savedFlag; });
 
-  it('quotes a served destination and refuses an unserved one', async () => {
+  it('quotes a served destination; an unserved one is quoted as out of area (Sthiva finds a supplier)', async () => {
     const ok = await quote('572103');
     expect(ok.status).toBe(200);
     expect(ok.body.data.delivery).toEqual({ pincode: '572103', district: 'TUMAKURU', state: 'KARNATAKA', serviceable: true });
+    expect(ok.body.data.outOfArea).toBe(false);
 
-    const no = await quote('110001');
-    expect(no.status).toBe(409);
-    expect(no.body.error).toMatchObject({ code: 'NOT_SERVICEABLE', details: { reason: 'PINCODE_NOT_SERVED', pincode: '110001' } });
+    const far = await quote('110001');
+    expect(far.status).toBe(200);
+    expect(far.body.data).toMatchObject({ outOfArea: true, delivery: { pincode: '110001', serviceable: false } });
     expect((await quote('57210')).body.error.code).toBe('PINCODE_INVALID');
     expect((await quote('999999')).body.error.code).toBe('PINCODE_NOT_FOUND');
   });
@@ -325,37 +326,44 @@ describe('quote and order serviceability', () => {
     expect(await stock()).toBe(90);
   });
 
-  it('a supplier with no configured coverage cannot be quoted or ordered for any PIN', async () => {
+  it('a supplier with no configured coverage: every PIN is out of area, nothing is offered to them, no stock taken', async () => {
     await SupplierProfile.updateOne({ _id: supplier.profile._id }, { $set: { servicePincodes: [] } });
     for (const pin of ['572103', '560001', '110001']) {
       const q = await quote(pin);
-      expect(q.status, pin).toBe(409);
-      expect(q.body.error.details.reason).toBe('PINCODE_NOT_SERVED');
-      expect((await order(pin)).status, pin).toBe(409);
+      expect(q.status, pin).toBe(200);
+      expect(q.body.data.outOfArea, pin).toBe(true);
+      expect((await order(pin)).status, pin).toBe(201);
     }
+    const queued = await Order.find().lean();
+    expect(queued.every((o) => o.outOfArea && o.allocation?.state === 'NEEDS_OPS' && o.inventoryState === 'NONE')).toBe(true);
+    // The supplier does not see orders Sthiva is still placing
+    expect((await request(app).get(api('/suppliers/me/orders')).set(supplier.headers)).body.data).toHaveLength(0);
     const detail = await request(app).get(api(`/products/${product._id}?pincode=572103`));
     expect(detail.body.availability).toMatchObject({ deliverable: false, reason: 'PINCODE_NOT_SERVED' });
     expect(await stock()).toBe(100);
   });
 
-  it('rejects an order for an unsupported PIN without touching stock', async () => {
+  it('takes an order for an unsupported PIN as out of area, for Sthiva to place, without touching stock', async () => {
     const res = await order('110001');
-    expect(res.status).toBe(409);
-    expect(res.body.error.details.reason).toBe('PINCODE_NOT_SERVED');
+    expect(res.status).toBe(201);
+    const saved = (await Order.findById(res.body.data.orderId).lean())!;
+    expect(saved).toMatchObject({ status: 'PENDING', outOfArea: true, allocation: { state: 'NEEDS_OPS' }, inventoryState: 'NONE' });
     expect(await stock()).toBe(100);
-    expect(await Order.countDocuments()).toBe(0);
+    // The buyer sees it as in process, without internal allocation details
+    const mine = await request(app).get(api(`/orders/${saved._id}`)).set(buyer.headers);
+    expect(mine.body.data).toMatchObject({ status: 'PENDING', outOfArea: true });
+    expect(mine.body.data.allocation).toBeUndefined();
   });
 
-  it('re-checks coverage at checkout: a PIN removed after the quote is refused', async () => {
+  it('re-checks coverage at checkout: a PIN removed after the quote becomes out of area', async () => {
     const q = await quote('572103');
     expect(q.status).toBe(200);
     await request(app).delete(api('/suppliers/me/service-pincodes/572103')).set(supplier.headers);
 
     const res = await order('572103', { expectedTotal: q.body.data.total });
-    expect(res.status).toBe(409);
-    expect(res.body.error).toMatchObject({ code: 'NOT_SERVICEABLE', details: { reason: 'PINCODE_NOT_SERVED' } });
+    expect(res.status).toBe(201);
+    expect((await Order.findById(res.body.data.orderId).lean())!.outOfArea).toBe(true);
     expect(await stock()).toBe(100);
-    expect(await Order.countDocuments()).toBe(0);
   });
 
   it('refuses checkout if the supplier is suspended or unverified after the quote', async () => {
@@ -369,8 +377,11 @@ describe('quote and order serviceability', () => {
 
   it('handles a location change during checkout', async () => {
     const q = await quote('572103');
-    // Buyer switches the address to a PIN this supplier doesn't serve → refused
-    expect((await order('110001', { expectedTotal: q.body.data.total })).status).toBe(409);
+    // Buyer switches the address to a PIN this supplier doesn't serve → out of area, no stock taken
+    const far = await order('110001', { expectedTotal: q.body.data.total });
+    expect(far.status).toBe(201);
+    expect((await Order.findById(far.body.data.orderId).lean())!.outOfArea).toBe(true);
+    expect(await stock()).toBe(100);
     // …or to another PIN it does serve → accepted (server re-checks the new PIN)
     const res = await order('560001', { expectedTotal: q.body.data.total });
     expect(res.status).toBe(201);

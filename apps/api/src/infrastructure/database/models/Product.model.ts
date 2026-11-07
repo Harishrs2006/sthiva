@@ -11,7 +11,7 @@ export interface IProduct extends Document {
   description: string;
   shortDescription?: string;
   images: { url: string; publicId: string; altText?: string; isPrimary: boolean; sortOrder: number }[];
-  unit: 'KG' | 'TON' | 'PIECE' | 'BAG' | 'BUNDLE' | 'CUBIC_METER' | 'SQUARE_METER' | 'LITER' | 'METER';
+  unit: 'KG' | 'TON' | 'PIECE' | 'BAG' | 'BUNDLE' | 'CUBIC_METER' | 'SQUARE_METER' | 'LITER' | 'METER' | 'BOX' | 'SHEET';
   basePrice: number;
   bulkPricing: { minQty: number; price: number }[];
   minOrderQuantity: number;
@@ -30,6 +30,9 @@ export interface IProduct extends Document {
   gstRate: number;
   deliveryDays: number;     // usual delivery time after the order is accepted: shortest, in days
   deliveryDaysMax?: number; // ...and longest (absent = same as deliveryDays)
+  // IN_STOCK: the supplier has it. ON_ORDER: they get it from the company or make it (brand catalogue
+  // tiles, custom woodwork); never runs out (stock held at ON_ORDER_STOCK), date confirmed after ordering.
+  supply: 'IN_STOCK' | 'ON_ORDER';
   location: { lat: number; lng: number; address: string };
   createdAt: Date;
   updatedAt: Date;
@@ -55,7 +58,7 @@ const productSchema = new Schema<IProduct>(
     ],
     unit: {
       type: String,
-      enum: ['KG', 'TON', 'PIECE', 'BAG', 'BUNDLE', 'CUBIC_METER', 'SQUARE_METER', 'LITER', 'METER'],
+      enum: ['KG', 'TON', 'PIECE', 'BAG', 'BUNDLE', 'CUBIC_METER', 'SQUARE_METER', 'LITER', 'METER', 'BOX', 'SHEET'],
       default: 'PIECE',
     },
     basePrice: { type: Number, required: true, min: 0 },
@@ -87,6 +90,7 @@ const productSchema = new Schema<IProduct>(
     gstRate: { type: Number, default: 18, min: 0, max: 40 },
     deliveryDays: { type: Number, default: 2, min: 0, max: 90 },
     deliveryDaysMax: { type: Number, min: 0, max: 90 },
+    supply: { type: String, enum: ['IN_STOCK', 'ON_ORDER'], default: 'IN_STOCK', index: true },
     location: {
       lat: Number,
       lng: Number,
@@ -107,3 +111,6 @@ productSchema.index(
 productSchema.index({ name: 'text', shortDescription: 'text', tags: 'text' });
 
 export const Product = model<IProduct>('Product', productSchema);
+
+/** Stock an ON_ORDER listing always shows: it never runs out, so the usual stock checks just pass. */
+export const ON_ORDER_STOCK = 1_000_000;

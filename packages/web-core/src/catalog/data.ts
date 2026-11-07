@@ -609,6 +609,8 @@ export function offerQuery(item: CatalogItem): string {
 export function suggestedListingUnit(item: CatalogItem): ListingUnit {
   const first = item.soldAs[0]?.label.toLowerCase() ?? '';
   if (first.includes('bag')) return 'BAG';
+  if (first.includes('per box')) return 'BOX';
+  if (first.includes('per sheet')) return 'SHEET';
   if (first.includes('tonne')) return 'TON';
   if (first.includes('per kg')) return 'KG';
   if (first.includes('cubic metre')) return 'CUBIC_METER';

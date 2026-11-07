@@ -32,7 +32,7 @@ function bestBulkPrice(base: number, tiers: { minQty: number; price: number }[] 
 }
 
 const UNIT_LABEL: Record<string, string> = {
-  KG: 'kg', TON: 'tonne', PIECE: 'piece', BAG: 'bag', BUNDLE: 'bundle', CUBIC_METER: 'm³', SQUARE_METER: 'm²', LITER: 'litre', METER: 'metre',
+  KG: 'kg', TON: 'tonne', PIECE: 'piece', BAG: 'bag', BUNDLE: 'bundle', CUBIC_METER: 'm³', SQUARE_METER: 'm²', LITER: 'litre', METER: 'metre', BOX: 'box', SHEET: 'sheet',
 };
 const unitLabel = (u: string) => UNIT_LABEL[u] ?? u.toLowerCase();
 

@@ -11,7 +11,7 @@ import {
 } from './order-state';
 import type { CartItemsInput, CreateOrderInput } from './order.schemas';
 import { env } from '../../config/env';
-import { offerExpiry } from './allocation.service';
+import { offerExpiry, supplierDistances } from './allocation.service';
 import { ratesFor, buyerProduct, type Rates } from './commission';
 import { activeVehicles, deliveryPoint, quoteDelivery, type DeliveryQuote, type LatLng } from '../delivery/delivery-pricing';
 import { SupplierProfile } from '../../infrastructure/database/models/SupplierProfile.model';
@@ -23,9 +23,16 @@ import { checkSupplier, eligibleSupplierIds, notServiceable, resolveDestination,
  * serves it; without one (older mobile clients), only check the supplier may take orders at
  * all. Never treats a missing PIN or missing supplier coverage as "serves everywhere".
  */
-async function assertSupplierCanServe(supplierId: Types.ObjectId, destination: Destination | null, session?: ClientSession) {
+/**
+ * Can the order's supplier deliver here? If nobody serves this PIN yet the order is still taken, as
+ * out of area: Sthiva's team finds a supplier (allocation NEEDS_OPS) and the buyer hears within 24 hours.
+ * Any other reason (supplier unavailable) still refuses.
+ */
+async function coverage(supplierId: Types.ObjectId, destination: Destination | null, session?: ClientSession): Promise<{ outOfArea: boolean }> {
   const result = await checkSupplier({ supplierProfileId: supplierId, pincode: destination?.pincode, session });
-  if (!result.serviceable) throw notServiceable(result.reason, destination?.pincode);
+  if (result.serviceable) return { outOfArea: false };
+  if (result.reason === 'PINCODE_NOT_SERVED') return { outOfArea: true };
+  throw notServiceable(result.reason, destination?.pincode);
 }
 
 type LeanOrder = IOrder & { _id: Types.ObjectId };
@@ -63,7 +70,7 @@ async function inTransaction<T>(fn: (session: ClientSession) => Promise<T>): Pro
 type LeanProduct = Pick<
   IProduct,
   'supplierId' | 'name' | 'unit' | 'basePrice' | 'bulkPricing' | 'gstRate' | 'isGstInclusive'
-  | 'minOrderQuantity' | 'stockQuantity' | 'status' | 'images' | 'catalogItemId' | 'categoryId' | 'deliveryDays' | 'deliveryDaysMax'
+  | 'minOrderQuantity' | 'stockQuantity' | 'status' | 'images' | 'catalogItemId' | 'categoryId' | 'deliveryDays' | 'deliveryDaysMax' | 'supply'
 > & { _id: Types.ObjectId };
 
 type PricedCart = {
@@ -131,13 +138,17 @@ async function chooseListings(items: CartItemsInput, asAdded: LeanProduct[], pin
   const rateMap = await ratesFor(listings.map((l) => l.categoryId));
   const vehicles = await activeVehicles();
 
+  // Cheapest wins; at the same price, the supplier nearest the site
+  const km = await supplierDistances([...bySupplier.keys()].map((id) => new Types.ObjectId(id)), destination, session);
   let best: Plan | null = null;
-  for (const own of bySupplier.values()) {
+  let bestKm = Infinity;
+  for (const [sid, own] of bySupplier) {
     const lines = items.map((it, idx) => own.find((l) => l.catalogItemId!.equals(itemIds[idx]!) && l.stockQuantity >= it.quantity));
     if (lines.some((l) => !l)) continue;
     try {
       const plan = await withDelivery(planFor(items, lines as LeanProduct[], rateMap), items, destination, vehicles);
-      if (!best || better(plan, best)) best = plan;
+      const tie = best !== null && !better(plan, best) && !better(best, plan);
+      if (!best || better(plan, best) || (tie && km(sid) < bestKm)) { best = plan; bestKm = km(sid); }
     } catch (err) {
       if (err instanceof PricingError || err instanceof AppError) continue; // this supplier can't sell this cart
       throw err;
@@ -198,14 +209,19 @@ function lineView(p: PricedCart['products'][number], line: PricedOrder['lines'][
 export async function quoteOrder(items: CartItemsInput, deliveryPincode?: string, point?: { lat?: number; lng?: number }) {
   const destination = deliveryPincode !== undefined ? await resolveDestination(deliveryPincode) : null;
   const dropPoint = await deliveryPoint({ ...point, pincode: destination?.pincode });
-  const { supplierId, products, priced, delivery } = await priceCart(items, undefined, destination?.pincode, dropPoint);
-  await assertSupplierCanServe(supplierId, destination);
+  const { supplierId, products, priced, delivery: priced0 } = await priceCart(items, undefined, destination?.pincode, dropPoint);
+  const { outOfArea } = await coverage(supplierId, destination);
+  // Out of area: the delivery charge is confirmed with the supplier Sthiva finds
+  const delivery = outOfArea && priced0.status === 'UNPRICED' ? { status: 'OFF' as const } : priced0;
   return {
     supplierId,
+    // ON_ORDER items (company orders, custom work) and out-of-area orders are 'in process' until confirmed
+    onOrder: products.some((p) => p.supply === 'ON_ORDER'),
+    outOfArea,
     // Usual delivery time of the chosen listings; the supplier confirms the date after accepting
     expectedDelivery: deliveryWindow(products),
     // null for legacy quotes without a PIN; the order will re-check coverage anyway
-    delivery: destination ? { ...destination, serviceable: true } : null,
+    delivery: destination ? { ...destination, serviceable: !outOfArea } : null,
     items: products.map((p, i) => ({
       ...lineView(p, priced.lines[i]),
       inStock: p.stockQuantity >= priced.lines[i].quantity,
@@ -265,19 +281,19 @@ export async function createOrder(params: {
 
   try {
     const order = await inTransaction(async (session) => {
-      const { supplierId, products, priced, supplierPriced, rates, delivery } = await priceCart(input.items, session, destination?.pincode, dropPoint);
+      const { supplierId, products, priced, supplierPriced, rates, delivery: priced0 } = await priceCart(input.items, session, destination?.pincode, dropPoint);
+      // Re-checked here, inside the transaction, regardless of any earlier quote
+      const { outOfArea } = await coverage(supplierId, destination, session);
+      const delivery = outOfArea && priced0.status === 'UNPRICED' ? { status: 'OFF' as const } : priced0;
       if (delivery.status === 'UNPRICED') throw new AppError(delivery.message, 'DELIVERY_NOT_PRICED', 409);
       const chargePaise = deliveryPaise(delivery);
-
-      // Re-checked here, inside the transaction, regardless of any earlier quote: a supplier
-      // who dropped this PIN since the quote makes the whole order (and stock change) roll back
-      await assertSupplierCanServe(supplierId, destination, session);
 
       if (input.expectedTotal !== undefined && toPaise(input.expectedTotal) !== priced.totalPaise + chargePaise) {
         throw AppError.conflict('Prices changed since you reviewed your order. Please check the new total.');
       }
 
-      for (const [i, p] of products.entries()) {
+      // Out of area: no supplier holds stock yet; the one Sthiva finds takes it when offered
+      for (const [i, p] of (outOfArea ? [] : products).entries()) {
         const qty = priced.lines[i].quantity;
         const res = await Product.updateOne(
           { _id: p._id, status: 'ACTIVE', stockQuantity: { $gte: qty } },
@@ -313,6 +329,8 @@ export async function createOrder(params: {
             serviceabilityCheck: destination ? 'VERIFIED' : 'SKIPPED_NO_PINCODE',
             deliveryMethod: input.deliveryMethod,
             expectedDelivery: deliveryWindow(products),
+            onOrder: products.some((p) => p.supply === 'ON_ORDER'),
+            ...(outOfArea ? { outOfArea: true } : {}),
             deliveryCharge: paiseToRupees(chargePaise),
             ...(delivery.status === 'PRICED' ? {
               delivery: {
@@ -328,12 +346,10 @@ export async function createOrder(params: {
             paymentStatus: 'PENDING',
             // Waits for the supplier to accept (allocation.service.ts)
             status: 'PENDING',
-            allocation: {
-              state: 'OFFERED',
-              ...(expiresAt ? { expiresAt } : {}),
-              attempts: [{ supplierId, offeredAt: now }],
-            },
-            inventoryState: 'DEDUCTED',
+            allocation: outOfArea
+              ? { state: 'NEEDS_OPS', attempts: [] }
+              : { state: 'OFFERED', ...(expiresAt ? { expiresAt } : {}), attempts: [{ supplierId, offeredAt: now }] },
+            inventoryState: outOfArea ? 'NONE' : 'DEDUCTED',
             // The buyer tells this to whoever delivers; needed to mark the order delivered
             deliveryOtp: String(randomInt(1000, 10000)),
             idempotencyKey,

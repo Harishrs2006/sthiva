@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { isValidObjectId } from 'mongoose';
 import { SupplierProfile } from '../../infrastructure/database/models/SupplierProfile.model';
-import { Product } from '../../infrastructure/database/models/Product.model';
+import { Product, ON_ORDER_STOCK } from '../../infrastructure/database/models/Product.model';
 import { Order } from '../../infrastructure/database/models/Order.model';
 import { AppError } from '../../shared/errors/AppError';
 import { Category } from '../../infrastructure/database/models/Category.model';
@@ -257,6 +257,7 @@ export async function listSupplierProducts(req: Request, res: Response, next: Ne
       filter.status = { $in: ['ACTIVE', 'INACTIVE'] };
       filter.$expr = { $lte: ['$stockQuantity', '$lowStockAlert'] };
       filter.stockQuantity = { $gt: 0 };
+      filter.supply = { $ne: 'ON_ORDER' };
     }
 
     const [products, total] = await Promise.all([
@@ -296,8 +297,10 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
 
     // Body is checked by createProductSchema (supplier.routes.ts)
     const { catalogItemId, brand, description, shortDescription, basePrice, gstRate, isGstInclusive,
-      stockQuantity, minOrderQuantity, deliveryDays, deliveryDaysMax, lowStockAlert, tags, specifications, images, bulkPricing,
+      stockQuantity: givenStock, minOrderQuantity, deliveryDays, deliveryDaysMax, supply, lowStockAlert, tags, specifications, images, bulkPricing,
       status } = req.body;
+    // An ON_ORDER listing never runs out (the supplier orders or makes it): stock is held at ON_ORDER_STOCK
+    const stockQuantity = supply === 'ON_ORDER' ? ON_ORDER_STOCK : givenStock;
     let { name, categoryId, unit } = req.body;
 
     // Selling an item already in the Sthiva catalog: its name, category and unit win, so every
@@ -358,6 +361,7 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
         stockQuantity: stockQuantity ?? 0,
         minOrderQuantity: minOrderQuantity ?? 1,
         deliveryDays: deliveryDays ?? 2,
+        supply: supply ?? 'IN_STOCK',
         ...(deliveryDaysMax !== undefined ? { deliveryDaysMax: Math.max(deliveryDaysMax, deliveryDays ?? 2) } : {}),
         tags: tags ?? [],
         specifications: specifications ?? {},
@@ -386,7 +390,7 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
     const profile = await getSupplierProfile(req.auth!.userId);
 
     const editable = ['name', 'description', 'shortDescription', 'basePrice', 'gstRate', 'isGstInclusive',
-      'stockQuantity', 'minOrderQuantity', 'deliveryDays', 'deliveryDaysMax', 'tags', 'specifications', 'status', 'images',
+      'stockQuantity', 'minOrderQuantity', 'deliveryDays', 'deliveryDaysMax', 'supply', 'tags', 'specifications', 'status', 'images',
       'lowStockAlert', 'bulkPricing'];
     const update: Record<string, unknown> = {};
     for (const key of editable) {
@@ -394,7 +398,7 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
     }
 
     const current = await Product.findOne({ _id: req.params.id, supplierId: profile._id })
-      .select('status basePrice minOrderQuantity bulkPricing deliveryDays deliveryDaysMax').lean();
+      .select('status basePrice minOrderQuantity bulkPricing deliveryDays deliveryDaysMax supply').lean();
     if (!current) throw AppError.notFound('Product');
 
     // Delivery time stays a valid range when only one end changes: a longer shortest time stretches the longest
@@ -413,6 +417,14 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
       const problem = bulkPricingProblem(tiers, (update.basePrice ?? current.basePrice) as number, (update.minOrderQuantity ?? current.minOrderQuantity) as number);
       if (problem) throw AppError.badRequest('Validation failed', [{ field: 'bulkPricing', message: problem }]);
       if (update.bulkPricing !== undefined) update.bulkPricing = [...tiers].sort((a, b) => a.minQty - b.minQty);
+    }
+
+    // ON_ORDER never runs out; switching back to IN_STOCK needs a real stock figure (0 if none given)
+    const supplyAfter = (update.supply ?? current.supply ?? 'IN_STOCK') as 'IN_STOCK' | 'ON_ORDER';
+    if (supplyAfter === 'ON_ORDER') {
+      update.stockQuantity = ON_ORDER_STOCK;
+    } else if (current.supply === 'ON_ORDER' && update.stockQuantity === undefined) {
+      update.stockQuantity = 0;
     }
 
     // Stock drives availability: 0 hides the listing as out of stock, restocking brings it back.

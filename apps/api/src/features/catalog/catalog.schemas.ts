@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { isValidObjectId } from 'mongoose';
 
 const objectId = z.string().refine((v) => isValidObjectId(v), 'Invalid ID');
-const UNITS = ['KG', 'TON', 'PIECE', 'BAG', 'BUNDLE', 'CUBIC_METER', 'SQUARE_METER', 'LITER', 'METER'] as const;
+const UNITS = ['KG', 'TON', 'PIECE', 'BAG', 'BUNDLE', 'CUBIC_METER', 'SQUARE_METER', 'LITER', 'METER', 'BOX', 'SHEET'] as const;
 
 const fields = {
   name: z.string().trim().min(3).max(150),
