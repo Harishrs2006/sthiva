@@ -687,6 +687,22 @@ export function ProductForm({ product, template, brands = [], sells = [] }: { pr
 
         <Step n={++n} title="Photos" hint="Real photos of your stock. The first one is shown in search.">
           <ImageUploader images={images} onChange={(next) => { touch(); setImages(next); }} />
+          {/* Buyers only see real photos (no stock or drawn pictures), so a good photo sells */}
+          <ul className="mt-3 grid gap-1.5 rounded-xl bg-sand-2 px-4 py-3 text-[13px] text-stone sm:grid-cols-2">
+            {[
+              'Your own stock, in daylight, not a catalogue picture',
+              'Fill the frame with the item; one item per photo',
+              'Show the label: brand, grade, size, ISI mark',
+              'A plain background: a wall, a floor or a sheet',
+              'Add a second photo for texture or colour (tiles, laminates)',
+              'No phone numbers, prices or other shop names on the photo',
+            ].map((t) => (
+              <li key={t} className="flex items-start gap-2">
+                <span className="material-symbols-outlined mt-0.5 text-[16px] text-tertiary" aria-hidden="true">check_circle</span>
+                {t}
+              </li>
+            ))}
+          </ul>
         </Step>
 
         {/* phones have no side column: the preview folds in at the end of the form */}

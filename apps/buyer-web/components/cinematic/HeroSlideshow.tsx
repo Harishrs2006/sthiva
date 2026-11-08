@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { SthivaLogo } from '@sthiva/web-core';
 import { CHAPTERS, resolveChapterLinks } from './chapters';
+import { HeroPinCheck } from './HeroPinCheck';
 
 // Full-screen hero that plays the construction story on its own: every photo slowly pushes in
 // towards the work happening in it (transform-origin = the photo's focus point), then crossfades
@@ -146,12 +147,15 @@ export function HeroSlideshow({ categories }: { categories: Categories }) {
         <p className="mt-6 max-w-xl animate-fade-up text-pretty text-[17px] leading-relaxed text-white/80 sm:text-[19px]" style={{ animationDelay: '380ms' }}>
           {hero.body}
         </p>
-        <div className="mt-9 flex animate-fade-up flex-wrap justify-center gap-3" style={{ animationDelay: '520ms' }}>
-          <a href="#categories" className="btn-lime group h-14 px-7 text-[16px]">
+        <div className="mt-8 w-full animate-fade-up" style={{ animationDelay: '460ms' }}>
+          <HeroPinCheck />
+        </div>
+        <div className="mt-5 flex animate-fade-up flex-wrap justify-center gap-3" style={{ animationDelay: '520ms' }}>
+          <a href="#categories" className="btn-lime group h-12 px-6 text-[15px] sm:h-14 sm:px-7 sm:text-[16px]">
             Browse materials
             <span className="material-symbols-outlined text-[20px] transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true">arrow_forward</span>
           </a>
-          <a href="#how-it-works" className="btn-ghost-dark h-14 px-7 text-[16px] backdrop-blur-md">How it works</a>
+          <a href="#how-it-works" className="btn-ghost-dark h-12 px-6 text-[15px] backdrop-blur-md sm:h-14 sm:px-7 sm:text-[16px]">How it works</a>
         </div>
       </div>
 
