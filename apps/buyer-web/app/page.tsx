@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { LocationSelector } from '@sthiva/web-core';
 import { Header } from '@/components/Header';
 import { BottomNav } from '@/components/BottomNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
@@ -47,11 +46,15 @@ const STEPS = [
   },
 ];
 
+// Phone (SMS) sign-in is switched on only when the paid SMS plan is active; Google sign-in always works
+const PHONE_SIGNIN = process.env.NEXT_PUBLIC_PHONE_SIGNIN === 'true';
+const SIGNIN_WAYS = PHONE_SIGNIN ? 'your Google account or phone number' : 'your Google account';
+
 const PRINCIPLES = [
   { icon: 'verified_user', title: 'Verified suppliers only', body: 'Only suppliers that pass verification can list products that buyers see.' },
   { icon: 'receipt_long', title: 'Prices you can audit', body: 'Before an order is placed, our servers recalculate the total from the live listing.' },
-  { icon: 'block', title: 'No false promises', body: 'A valid PIN is not a delivery promise. If no supplier serves your area, we tell you.' },
-  { icon: 'lock', title: 'Phone sign-in, no passwords', body: 'One-time codes over SMS. Nothing to remember, nothing to leak.' },
+  { icon: 'block', title: 'No false promises', body: 'A valid PIN is not a delivery promise. If no supplier delivers to your area yet, we say so before you order, and find one for you.' },
+  { icon: 'lock', title: 'Sign in, no passwords', body: `Use ${SIGNIN_WAYS}. No new password to create, remember or leak.` },
 ];
 
 export default function HomePage() {
@@ -208,11 +211,11 @@ export default function HomePage() {
               <h2 className="mx-auto max-w-4xl font-display text-[clamp(2.75rem,7vw,6rem)] font-bold leading-[0.92] tracking-tightest text-balance">
                 Your next pour starts <span className="relative inline-block">here<span className="absolute -bottom-1 left-0 right-0 h-[0.14em] rounded-full bg-lime" aria-hidden="true" /></span>.
               </h2>
-              <p className="mx-auto mt-6 max-w-md text-[17px] text-stone">Sign in with your phone number in under a minute. No passwords.</p>
+              <p className="mx-auto mt-6 max-w-md text-[17px] text-stone">Sign in with {SIGNIN_WAYS} in under a minute. No passwords.</p>
               <div className="mt-9 flex flex-wrap justify-center gap-3">
                 <Link href="/signin" className="btn-ink group">
-                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">smartphone</span>
-                  Continue with phone
+                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">login</span>
+                  Sign in
                 </Link>
                 <Link href="#categories" className="btn-ghost">
                   Browse first
