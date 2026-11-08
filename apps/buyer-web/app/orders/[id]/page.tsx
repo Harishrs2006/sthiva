@@ -10,6 +10,7 @@ import { ErrorNote, StatusPill, SummaryRow } from '@/components/account/AccountU
 import { fetchOrder, cancelBuyerOrder, type BuyerOrder } from '@/lib/orders';
 import { OrderTimeline } from '@/components/OrderTimeline';
 import { DeliveryDateCard } from '@/components/account/DeliveryDateCard';
+import { OrderAgain } from '@/components/account/OrderAgain';
 import { rupees, shortDate } from '@/lib/format';
 
 function OrderDetail({ id }: { id: string }) {
@@ -78,6 +79,7 @@ function OrderDetail({ id }: { id: string }) {
       </section>
 
       <DeliveryDateCard order={order} />
+      <OrderAgain order={order} />
 
       {order.deliveryOtp && (
         <section className="card flex flex-col gap-2 border-2 border-ink p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">

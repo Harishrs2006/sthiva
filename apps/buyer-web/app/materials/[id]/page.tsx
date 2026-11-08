@@ -11,6 +11,7 @@ import { SiteFooter } from '@/components/layout/SiteFooter';
 import { ProductListCard } from '@/components/ProductListCard';
 import { DeliveryCheck } from '@/components/catalog/DeliveryCheck';
 import { QuantityHelper } from '@/components/catalog/QuantityHelper';
+import { QuickAdd } from '@/components/catalog/QuickAdd';
 import { MaterialCard } from '@/components/catalog/MaterialCard';
 import { useCategories } from '@/lib/categories';
 import { catalogCategory, catalogItem, catalogItems, matchCatalogItem, offerQuery } from '@sthiva/web-core';
@@ -193,6 +194,7 @@ export default function MaterialPage({ params }: { params: Promise<{ id: string 
                 <p className="mt-3 text-[13px] text-stone">Matching offers are listed first below.</p>
               </div>
             )}
+            {shownOffers[0] && <QuickAdd key={shownOffers[0]._id} offer={shownOffers[0]} total={shownOffers.length} />}
             {item.calculator && <QuantityHelper calculator={item.calculator} />}
             <a href="#offers" className="btn-ink w-full py-4">
               See offers{location ? ` for ${location.pincode}` : ''}
