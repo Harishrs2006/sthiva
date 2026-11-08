@@ -11,6 +11,7 @@ import { EmptyState, ErrorNote, PageHead, SummaryRow } from '@/components/accoun
 import { useCart, clearCart } from '@/lib/cart';
 import { quoteCart, placeOrder, type Quote } from '@/lib/orders';
 import { rupees } from '@/lib/format';
+import { readSavedAddress, saveAddress } from '@/lib/saved-address';
 
 const LABELS = ['Site', 'Home', 'Office', 'Warehouse'];
 
@@ -40,6 +41,17 @@ function CheckoutForm() {
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState<string | null>(null);
   const idempotencyKey = useMemo(() => crypto.randomUUID(), []);
+  const [usedSaved, setUsedSaved] = useState(false);
+
+  // A repeat order starts with the address used last time for this site (editable as usual)
+  useEffect(() => {
+    const saved = readSavedAddress(location?.pincode);
+    if (!saved) return;
+    setLabel(saved.label);
+    setFullAddress((a) => a || saved.fullAddress);
+    setContactPhone((p) => p || saved.contactPhone);
+    setUsedSaved(true);
+  }, [location?.pincode]);
 
   const items = useMemo(() => cart?.items.map((i) => ({ productId: i.productId, quantity: i.quantity })) ?? [], [cart]);
 
@@ -88,6 +100,7 @@ function CheckoutForm() {
         },
         idempotencyKey
       );
+      saveAddress({ label, fullAddress, contactPhone, pincode: location?.pincode });
       clearCart();
       router.push(`/orders/${result.orderId}`);
     } catch (err) {
@@ -122,6 +135,7 @@ function CheckoutForm() {
 
           <label className="mt-5 flex flex-col gap-2">
             <span className="text-[14px] font-medium text-stone">Full address</span>
+            {usedSaved && <span className="text-[13px] text-stone">Filled in from your last order. Edit it if this order goes somewhere else.</span>}
             <textarea
               required
               rows={3}
