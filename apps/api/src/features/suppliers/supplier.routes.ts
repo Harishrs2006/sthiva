@@ -9,7 +9,7 @@ import {
   getProfile, updateProfile, getStats, getAnalytics,
   listSupplierOrders, updateOrderStatus, confirmCodCollected,
   listSupplierProducts, getSupplierProduct, createProduct, updateProduct, deleteProduct,
-  acceptOrder, rejectOrder, reportProblem,
+  acceptOrder, rejectOrder, reportProblem, changeDeliveryDate,
 } from './supplier.controller';
 import { z } from 'zod';
 import {
@@ -49,7 +49,7 @@ export const updateProfileSchema = z
 
 // GST slabs in force for building materials (cement, steel, tiles, paint, pipes, wires...)
 export const GST_RATES = [0, 5, 12, 18, 28] as const;
-export const PRODUCT_UNITS = ['KG', 'TON', 'PIECE', 'BAG', 'BUNDLE', 'CUBIC_METER', 'SQUARE_METER', 'LITER', 'METER'] as const;
+export const PRODUCT_UNITS = ['KG', 'TON', 'PIECE', 'BAG', 'BUNDLE', 'CUBIC_METER', 'SQUARE_METER', 'LITER', 'METER', 'BOX', 'SHEET'] as const;
 const objectId = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid ID');
 
 const productFields = {
@@ -66,7 +66,10 @@ const productFields = {
   isGstInclusive: z.boolean(),
   stockQuantity: z.number().int('Stock must be a whole number').min(0).max(10_000_000),
   minOrderQuantity: z.number().int().min(1).max(100_000),
-  deliveryDays: z.number().int().min(0).max(60),
+  // Usual delivery time after accepting an order, as a range of days (woodwork can take weeks)
+  deliveryDays: z.number().int().min(0).max(90),
+  deliveryDaysMax: z.number().int().min(0).max(90),
+  supply: z.enum(['IN_STOCK', 'ON_ORDER']),
   lowStockAlert: z.number().int().min(0).max(10_000_000),
   tags: z.array(z.string().trim().min(1).max(40)).max(20),
   specifications: z.record(z.string().trim().min(1).max(60), z.string().trim().max(200))
@@ -93,15 +96,20 @@ export const createProductSchema = z
     status: z.enum(['DRAFT', 'ACTIVE']),
   })
   .partial({ catalogItemId: true, brand: true, shortDescription: true, gstRate: true, isGstInclusive: true, stockQuantity: true, minOrderQuantity: true,
-    deliveryDays: true, lowStockAlert: true, tags: true, specifications: true, images: true, bulkPricing: true, status: true })
+    deliveryDays: true, deliveryDaysMax: true, supply: true, lowStockAlert: true, tags: true, specifications: true, images: true, bulkPricing: true, status: true })
   .strict()
   .superRefine((v, ctx) => {
     const problem = bulkPricingProblem(v.bulkPricing, v.basePrice, v.minOrderQuantity);
     if (problem) ctx.addIssue({ code: 'custom', path: ['bulkPricing'], message: problem });
+    if (v.deliveryDays !== undefined && v.deliveryDaysMax !== undefined && v.deliveryDaysMax < v.deliveryDays) {
+      ctx.addIssue({ code: 'custom', path: ['deliveryDaysMax'], message: 'The longest delivery time cannot be shorter than the shortest' });
+    }
   });
 
 // Category, catalog item and brand are fixed once listed (ops can re-link or merge items)
-export const updateProductSchema = z.object(productFields).omit({ categoryId: true, catalogItemId: true, brand: true }).partial().strict();
+export const updateProductSchema = z.object(productFields).omit({ categoryId: true, catalogItemId: true, brand: true }).partial().strict()
+  .refine((v) => v.deliveryDays === undefined || v.deliveryDaysMax === undefined || v.deliveryDaysMax >= v.deliveryDays,
+    { path: ['deliveryDaysMax'], message: 'The longest delivery time cannot be shorter than the shortest' });
 
 const router = Router();
 
@@ -121,7 +129,11 @@ router.post('/me/documents', documentUpload, uploadDocument);
 router.get('/me/orders', listSupplierOrders);
 // Orders are offered to one supplier at a time: accept, or reject so the next supplier gets it
 const rejectSchema = z.object({ reason: z.string().trim().min(3, 'Tell us why (at least 3 characters)').max(300) });
-router.post('/me/orders/:id/accept', acceptOrder);
+// deliveryDate: the date the supplier commits to (YYYY-MM-DD); optional so older app versions still work
+const acceptSchema = z.object({ deliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Choose a delivery date').optional() }).strict();
+const deliveryDateSchema = z.object({ deliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Choose a delivery date') }).strict();
+router.post('/me/orders/:id/accept', validate(acceptSchema), acceptOrder);
+router.patch('/me/orders/:id/delivery-date', validate(deliveryDateSchema), changeDeliveryDate);
 router.post('/me/orders/:id/reject', validate(rejectSchema), rejectOrder);
 router.post('/me/orders/:id/problem', validate(problemSchema), reportProblem);
 router.patch('/me/orders/:id/status', validate(supplierStatusSchema), updateOrderStatus);

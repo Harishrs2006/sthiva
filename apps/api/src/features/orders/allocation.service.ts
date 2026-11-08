@@ -25,6 +25,8 @@ import { checkSupplier } from '../serviceability/serviceability.service';
 import { priceLine, toPaise, PricingError } from './pricing';
 import { expireDriverOffers } from '../delivery/driver-offers';
 import { sendWeeklyReminders } from '../suppliers/weekly';
+import { checkDeliveryDate, deliveryWindow } from './delivery-window';
+import { deliveryPoint, distanceKm } from '../delivery/delivery-pricing';
 
 type LeanOrder = IOrder & { _id: Types.ObjectId };
 type Outcome = 'REJECTED' | 'EXPIRED' | 'WITHDRAWN';
@@ -96,6 +98,18 @@ async function canServe(supplierId: Types.ObjectId, order: LeanOrder, session: C
   return r.serviceable;
 }
 
+/** Straight-line km from each supplier's pickup point to the site (Infinity when either is unknown). */
+export async function supplierDistances(ids: Types.ObjectId[], to: { lat: number; lng: number } | null, session?: ClientSession) {
+  const profiles = to && ids.length
+    ? await SupplierProfile.find({ _id: { $in: ids } }).select('location').session(session ?? null).lean()
+    : [];
+  const at = new Map(profiles.map((p) => [p._id.toString(), p.location]));
+  return (id: Types.ObjectId | string) => {
+    const from = at.get(id.toString());
+    return to && from && typeof from.lat === 'number' && typeof from.lng === 'number' ? distanceKm({ lat: from.lat, lng: from.lng }, to) : Infinity;
+  };
+}
+
 /** Best next supplier for the order, or null. */
 async function findNextSupplier(order: LeanOrder, session: ClientSession) {
   const tried = (order.allocation?.attempts ?? []).map((a) => a.supplierId.toString());
@@ -108,7 +122,10 @@ async function findNextSupplier(order: LeanOrder, session: ClientSession) {
     const m = matchLines(order, own, true);
     if (m) options.push({ supplierId: new Types.ObjectId(sid), ...m });
   }
-  options.sort((a, b) => a.totalPaise - b.totalPaise);
+  // Cheapest first; at the same price, the supplier nearest the site
+  const drop = await deliveryPoint(order.deliveryAddress);
+  const km = await supplierDistances(options.map((o) => o.supplierId), drop, session);
+  options.sort((a, b) => a.totalPaise - b.totalPaise || km(a.supplierId) - km(b.supplierId));
   for (const o of options) {
     if (await canServe(o.supplierId, order, session)) return o;
   }
@@ -186,6 +203,9 @@ async function moveOn(params: {
         supplierLineTotal: next!.linePaise[i] / 100,
       }));
       set.supplierTotal = next.totalPaise / 100;
+      // The new supplier's usual delivery time
+      const lead = await Product.find({ _id: { $in: next.productIds } }).select('deliveryDays deliveryDaysMax').session(session).lean();
+      set.expectedDelivery = deliveryWindow(lead);
       set.commissionTotal = (toPaise(order.total) - next.totalPaise) / 100;
       set.allocation = { state: 'OFFERED', ...(expiresAt ? { expiresAt } : {}), attempts };
       set.inventoryState = 'DEDUCTED';
@@ -230,6 +250,8 @@ function afterMove(moved: Moved | null) {
 
 /** The first offer, right after the order is created. */
 export function announceNewOrder(order: LeanOrder) {
+  // Out of area: nobody is offered it yet; Sthiva's team finds a supplier from the ops queue
+  if (order.allocation?.state !== 'OFFERED') return;
   notifyOffer(order, order.supplierId);
 }
 
@@ -237,13 +259,24 @@ const offeredTo = (supplierProfileId: string) => ({ supplierId: supplierProfileI
 
 // ─── Supplier answers ───────────────────────────────────────────────────────
 
-export async function acceptOffer(params: { orderId: string; supplierProfileId: string; userId: string }) {
-  const { orderId, supplierProfileId, userId } = params;
+/**
+ * The supplier accepts the offer. deliveryDate (YYYY-MM-DD, India) is the date they commit to; the
+ * seller website always sends it, older app versions may not (the buyer then sees the expected range).
+ */
+export async function acceptOffer(params: { orderId: string; supplierProfileId: string; userId: string; deliveryDate?: string }) {
+  const { orderId, supplierProfileId, userId, deliveryDate } = params;
   const now = new Date();
+  if (deliveryDate !== undefined) {
+    const problem = checkDeliveryDate(deliveryDate, now);
+    if (problem) throw AppError.badRequest(problem);
+  }
   const order = await Order.findOneAndUpdate(
     { _id: orderId, status: 'PENDING', ...offeredTo(supplierProfileId) },
     {
-      $set: { status: 'CONFIRMED', confirmedAt: now, 'allocation.state': 'ACCEPTED', 'allocation.attempts.$[open].outcome': 'ACCEPTED', 'allocation.attempts.$[open].at': now },
+      $set: {
+        status: 'CONFIRMED', confirmedAt: now, 'allocation.state': 'ACCEPTED', 'allocation.attempts.$[open].outcome': 'ACCEPTED', 'allocation.attempts.$[open].at': now,
+        ...(deliveryDate ? { deliveryDate, deliveryDateSetAt: now } : {}),
+      },
       $unset: { 'allocation.expiresAt': '' },
       $push: { statusHistory: { status: 'CONFIRMED', at: now, byRole: 'SUPPLIER', byUserId: new Types.ObjectId(userId) } },
     },
@@ -252,7 +285,9 @@ export async function acceptOffer(params: { orderId: string; supplierProfileId: 
   if (order) {
     notifyUser(order.buyerId.toString(), {
       title: 'Order confirmed',
-      body: `Your order ${order.orderNumber} is confirmed by the supplier.`,
+      body: order.deliveryDate
+        ? `Your order ${order.orderNumber} is confirmed. Delivery on ${formatDay(order.deliveryDate)}.`
+        : `Your order ${order.orderNumber} is confirmed by the supplier.`,
       data: { screen: 'buyer_orders', orderId: order._id.toString() },
     });
     return { order, changed: true };
@@ -261,6 +296,39 @@ export async function acceptOffer(params: { orderId: string; supplierProfileId: 
   if (!current) throw AppError.notFound('Order');
   if (current.status === 'CONFIRMED' && current.supplierId.toString() === supplierProfileId) return { order: current, changed: false };
   throw AppError.conflict('This order is no longer waiting for you');
+}
+
+/** "Tue, 12 Nov" for a YYYY-MM-DD date. */
+export function formatDay(date: string): string {
+  return new Date(`${date}T00:00:00Z`).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+}
+
+/**
+ * The supplier sets or changes the confirmed delivery date after accepting (until delivery). The buyer
+ * is told every time it changes.
+ */
+export async function setDeliveryDate(params: { orderId: string; supplierProfileId: string; deliveryDate: string }) {
+  const { orderId, supplierProfileId, deliveryDate } = params;
+  const problem = checkDeliveryDate(deliveryDate);
+  if (problem) throw AppError.badRequest(problem);
+  const before = await Order.findOne({ _id: orderId, supplierId: new Types.ObjectId(supplierProfileId) }).select('status deliveryDate').lean<LeanOrder>();
+  if (!before) throw AppError.notFound('Order');
+  if (!['CONFIRMED', 'READY_FOR_PICKUP', 'ASSIGNED', 'PICKED_UP', 'IN_TRANSIT'].includes(before.status)) {
+    throw AppError.conflict(before.status === 'PENDING' ? 'Accept the order first' : 'This order can no longer be changed');
+  }
+  if (before.deliveryDate === deliveryDate) return Order.findById(orderId).lean<LeanOrder>();
+  const order = await Order.findOneAndUpdate(
+    { _id: orderId, supplierId: new Types.ObjectId(supplierProfileId), status: before.status },
+    { $set: { deliveryDate, deliveryDateSetAt: new Date() } },
+    { new: true }
+  ).lean<LeanOrder>();
+  if (!order) throw AppError.conflict('Order changed at the same time. Please refresh.');
+  notifyUser(order.buyerId.toString(), {
+    title: before.deliveryDate ? 'Delivery date changed' : 'Delivery date confirmed',
+    body: `Order ${order.orderNumber}: delivery on ${formatDay(deliveryDate)}.`,
+    data: { screen: 'buyer_orders', orderId: order._id.toString() },
+  });
+  return order;
 }
 
 export async function rejectOffer(params: { orderId: string; supplierProfileId: string; userId: string; reason: string }) {

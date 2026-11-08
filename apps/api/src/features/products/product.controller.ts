@@ -3,6 +3,8 @@ import { isValidObjectId } from 'mongoose';
 import { Product } from '../../infrastructure/database/models/Product.model';
 import { Category } from '../../infrastructure/database/models/Category.model';
 import { checkSupplier, eligibleSupplierIds, resolveDestination, type Destination } from '../serviceability/serviceability.service';
+import { deliveryPoint } from '../delivery/delivery-pricing';
+import { supplierDistances } from '../orders/allocation.service';
 import { buyerProduct, ratesFor } from '../orders/commission';
 
 // Public catalogue. Every client (mobile included) only sees ACTIVE products from suppliers that
@@ -26,14 +28,14 @@ async function forBuyers<T extends { categoryId: unknown; basePrice: number; bul
   return rows.flatMap((r) => {
     const rate = rates.get(catId(r.categoryId));
     if (!rate) return [];
-    const { _key, _gross, ...rest } = r as T & { _key?: unknown; _gross?: unknown };
+    const { _key, _gross, _km, ...rest } = r as T & { _key?: unknown; _gross?: unknown; _km?: unknown };
     return [buyerProduct(rest as unknown as T & { name: string; unit: string; gstRate: number; isGstInclusive: boolean }, rate.platform)];
   });
 }
 
 export async function listProducts(req: Request, res: Response, next: NextFunction) {
   try {
-    const { category, sort = 'popular', q, page = '1', limit = '20', pincode } = req.query as Record<string, string>;
+    const { category, sort: sortParam, q, page = '1', limit = '20', pincode, withPhotos } = req.query as Record<string, string>;
 
     let destination: Destination | undefined;
     if (pincode !== undefined) destination = await resolveDestination(pincode);
@@ -50,8 +52,17 @@ export async function listProducts(req: Request, res: Response, next: NextFuncti
     if (q) {
       filter.$text = { $search: q };
     }
+    // The Catalogue shows only listings with the seller's own photos
+    if (withPhotos === '1' || withPhotos === 'true') filter['images.0'] = { $exists: true };
 
+    // With a PIN, sellers nearest the site come first (then the most sold); without one, the most sold
+    const drop = destination ? await deliveryPoint({ pincode: destination.pincode }) : null;
+    const km = await supplierDistances(supplierIds, drop);
+    const kmIds = supplierIds;
+    const kmValues = supplierIds.map((id) => { const d = km(id); return Number.isFinite(d) ? Math.round(d * 10) / 10 : null; });
+    const sort = sortParam ?? (drop ? 'nearby' : 'popular');
     const sortMap: Record<string, Record<string, 1 | -1>> = {
+      nearby:     { _km: 1, totalSold: -1, _id: 1 },
       popular:    { totalSold: -1, _id: 1 },
       price_asc:  { _gross: 1, _id: 1 },
       price_desc: { _gross: -1, _id: 1 },
@@ -68,9 +79,13 @@ export async function listProducts(req: Request, res: Response, next: NextFuncti
         $addFields: {
           _key: { $ifNull: ['$catalogItemId', '$_id'] },
           _gross: { $cond: ['$isGstInclusive', '$basePrice', { $multiply: ['$basePrice', { $add: [1, { $divide: ['$gstRate', 100] }] }] }] },
+          // Distance of this listing's supplier from the site (km), unknown sorts last
+          distanceKm: { $arrayElemAt: [kmValues, { $indexOfArray: [kmIds, '$supplierId'] }] },
         },
       },
-      { $sort: { _gross: 1, _id: 1 } },
+      { $addFields: { _km: { $ifNull: ['$distanceKm', 1e9] } } },
+      // Cheapest offer per item; at the same price, the nearest supplier
+      { $sort: { _gross: 1, _km: 1, _id: 1 } },
       { $group: { _id: '$_key', doc: { $first: '$$ROOT' }, sellerCount: { $sum: 1 }, soldAll: { $sum: '$totalSold' } } },
       { $replaceRoot: { newRoot: { $mergeObjects: ['$doc', { sellerCount: '$sellerCount', totalSold: '$soldAll' }] } } },
       { $sort: sortMap[sort] ?? sortMap.popular },

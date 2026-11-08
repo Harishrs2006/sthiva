@@ -42,6 +42,10 @@ export const supplierOrderSchema = z
     }).optional(),
     // Straight-line km from the supplier's pickup point; null when either point is unknown
     distanceKm: z.number().nullable().optional(),
+    // Your usual delivery time for these listings, and the date you confirmed (YYYY-MM-DD)
+    expectedDelivery: z.object({ minDays: z.number(), maxDays: z.number() }).optional(),
+    deliveryDate: z.string().optional(),
+    onOrder: z.boolean().optional(),
     createdAt: z.string(),
   })
   .passthrough();
@@ -83,9 +87,14 @@ export async function reportDeliveryProblem(client: ApiClient, id: string, reaso
 }
 
 // Own-vehicle COD: the supplier confirms the exact total once the cash is in hand
-/** Take an order Sthiva offered you. */
-export async function acceptSupplierOrder(client: ApiClient, id: string): Promise<unknown> {
-  return client.request(`/suppliers/me/orders/${id}/accept`, { method: 'POST', auth: true, envelope: true, schema: z.unknown() });
+/** Take an order Sthiva offered you, committing to a delivery date (YYYY-MM-DD). */
+export async function acceptSupplierOrder(client: ApiClient, id: string, deliveryDate: string): Promise<unknown> {
+  return client.request(`/suppliers/me/orders/${id}/accept`, { method: 'POST', auth: true, envelope: true, schema: z.unknown(), body: { deliveryDate } });
+}
+
+/** Set or change the confirmed delivery date of an accepted order; the buyer is told. */
+export async function setSupplierDeliveryDate(client: ApiClient, id: string, deliveryDate: string): Promise<unknown> {
+  return client.request(`/suppliers/me/orders/${id}/delivery-date`, { method: 'PATCH', auth: true, envelope: true, schema: z.unknown(), body: { deliveryDate } });
 }
 
 /** Turn an offer down; Sthiva offers it to the next supplier. */

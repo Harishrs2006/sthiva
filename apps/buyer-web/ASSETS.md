@@ -32,3 +32,11 @@ licence for, and note the source in the tables above. No other brands' photos, l
 ## Optional upgrade: filmed footage
 A real hero clip (site at golden hour, 8-12 s seamless loop, 720p, under 3 MB, H.264 + VP9, no audio)
 can replace the hero photo later. Keep the photo as its poster and for phones and reduced motion.
+
+## Category and room photos (2026-11-07)
+
+`public/categories/` (modular-woodwork, walls-ceilings, hardware-fittings, doors-windows, bath-kitchen,
+roofing-waterproofing) and `public/rooms/` (kitchen, bathroom, bedroom, living, pooja, exterior): AI-generated for
+Sthiva with Figma AI (gemini-3.1-flash-image), 1264x848, saved as JPG (82 to 187 KB). No people, no brand names.
+The woodwork photo showed a machine maker's logo and model number on a panel saw: painted out with the
+surrounding colours. They are illustrations of the kind of work, not photos of real Sthiva suppliers.

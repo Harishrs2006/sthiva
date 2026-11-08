@@ -9,7 +9,7 @@ export interface ICatalogItem extends Document {
   slug: string;
   categoryId: Types.ObjectId;
   brand?: string;
-  unit: 'KG' | 'TON' | 'PIECE' | 'BAG' | 'BUNDLE' | 'CUBIC_METER' | 'SQUARE_METER' | 'LITER' | 'METER';
+  unit: 'KG' | 'TON' | 'PIECE' | 'BAG' | 'BUNDLE' | 'CUBIC_METER' | 'SQUARE_METER' | 'LITER' | 'METER' | 'BOX' | 'SHEET';
   description?: string;
   images: { url: string; publicId: string; altText?: string }[];
   specifications: Record<string, string>;
@@ -31,7 +31,7 @@ const catalogItemSchema = new Schema<ICatalogItem>(
     brand: { type: String, trim: true, maxlength: 60 },
     unit: {
       type: String,
-      enum: ['KG', 'TON', 'PIECE', 'BAG', 'BUNDLE', 'CUBIC_METER', 'SQUARE_METER', 'LITER', 'METER'],
+      enum: ['KG', 'TON', 'PIECE', 'BAG', 'BUNDLE', 'CUBIC_METER', 'SQUARE_METER', 'LITER', 'METER', 'BOX', 'SHEET'],
       required: true,
     },
     description: { type: String, maxlength: 3000 },

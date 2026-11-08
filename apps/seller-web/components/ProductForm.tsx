@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  useApiClient, catalogItems, catalogItem, matchCatalogItem, suggestedListingName, suggestedListingUnit, type CatalogItem,
+  useApiClient, catalogItems, catalogItem, deliveryTimeLabel, DELIVERY_TIME_PRESETS, matchCatalogItem, suggestedListingName, suggestedListingUnit, type CatalogItem,
 } from '@sthiva/web-core';
 import { useCategories } from '../lib/categories';
 import { createSupplierProduct, productErrorText, searchSthivaItems, updateSupplierProduct, type ProductInput, type SthivaItem, type SupplierProduct } from '../lib/products';
@@ -22,6 +22,8 @@ const UNITS: { value: string; label: string; short: string }[] = [
   { value: 'SQUARE_METER', label: 'Square metre (m²)', short: 'm²' },
   { value: 'LITER', label: 'Litre', short: 'litre' },
   { value: 'METER', label: 'Metre', short: 'metre' },
+  { value: 'BOX', label: 'Box', short: 'box' },
+  { value: 'SHEET', label: 'Sheet', short: 'sheet' },
 ];
 
 // specifications keys written by this form (the storefront shows them as the spec table)
@@ -120,9 +122,9 @@ const num = (v: string) => (v.trim() === '' ? NaN : Number(v));
 const isWhole = (v: string) => v.trim() !== '' && Number.isInteger(Number(v)) && Number(v) >= 0;
 
 // How the listing will look to a buyer, updated as the seller types
-function BuyerPreview({ name, brand, unit, price, gstRate, inclusive, tiers, stock, minOrder, deliveryDays, image }: {
+function BuyerPreview({ name, brand, unit, price, gstRate, inclusive, tiers, stock, minOrder, deliveryDays, deliveryDaysMax, image }: {
   name: string; brand?: string; unit: string; price: number; gstRate: number; inclusive: boolean;
-  tiers: { minQty: number; price: number }[]; stock: number; minOrder: number; deliveryDays: number; image?: string;
+  tiers: { minQty: number; price: number }[]; stock: number; minOrder: number; deliveryDays: number; deliveryDaysMax: number; image?: string;
 }) {
   const breakdown = gstBreakdown(price, gstRate, inclusive);
   // Only a bulk price the server would accept is shown as a deal
@@ -152,7 +154,7 @@ function BuyerPreview({ name, brand, unit, price, gstRate, inclusive, tiers, sto
         <div className="flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-stone">
           <span className={stock > 0 ? 'text-tertiary' : 'text-error'}>{stock > 0 ? 'In stock' : 'Out of stock'}</span>
           {minOrder > 1 && <span>Min {minOrder} {unit}</span>}
-          <span>Delivery in {deliveryDays} day{deliveryDays === 1 ? '' : 's'}</span>
+          <span>Delivery: {deliveryTimeLabel(deliveryDays, deliveryDaysMax).toLowerCase()}</span>
         </div>
       </div>
     </div>
@@ -183,10 +185,17 @@ export function ProductForm({ product, template, brands = [], sells = [] }: { pr
   const [tiers, setTiers] = useState<{ minQty: string; price: string }[]>(
     (start?.bulkPricing ?? []).map((t) => ({ minQty: String(t.minQty), price: String(t.price) }))
   );
-  const [stockQuantity, setStockQuantity] = useState(product ? String(product.stockQuantity) : '');
+  // IN_STOCK: you have it. ON_ORDER: you order it from the company or make it; buyers are told it is in
+  // process and you confirm the date within 24 hours
+  const [supply, setSupply] = useState<'IN_STOCK' | 'ON_ORDER'>(product?.supply === 'ON_ORDER' ? 'ON_ORDER' : 'IN_STOCK');
+  const onOrder = supply === 'ON_ORDER';
+  const [stockQuantity, setStockQuantity] = useState(product && product.supply !== 'ON_ORDER' ? String(product.stockQuantity) : '');
   const [lowStockAlert, setLowStockAlert] = useState(start?.lowStockAlert !== undefined ? String(start.lowStockAlert) : '10');
   const [minOrderQuantity, setMinOrderQuantity] = useState(start?.minOrderQuantity ? String(start.minOrderQuantity) : '1');
   const [deliveryDays, setDeliveryDays] = useState(start?.deliveryDays !== undefined ? String(start.deliveryDays) : '2');
+  const [deliveryDaysMax, setDeliveryDaysMax] = useState(
+    start?.deliveryDaysMax !== undefined ? String(start.deliveryDaysMax) : start?.deliveryDays !== undefined ? String(start.deliveryDays) : '3'
+  );
   const [images, setImages] = useState<ProductImage[]>(start?.images ?? []);
   const [submitting, setSubmitting] = useState<null | 'publish' | 'draft'>(null);
   const [error, setError] = useState<string | null>(null);
@@ -299,7 +308,9 @@ export function ProductForm({ product, template, brands = [], sells = [] }: { pr
     price: !(price > 0) ? 'Enter the price' : null,
     stock: stockQuantity !== '' && !isWhole(stockQuantity) ? 'Whole number, 0 or more' : null,
     minOrder: !(isWhole(minOrderQuantity) && Number(minOrderQuantity) >= 1) ? 'Whole number, 1 or more' : null,
-    delivery: !(isWhole(deliveryDays) && Number(deliveryDays) <= 60) ? 'Between 0 and 60 days' : null,
+    delivery: !(isWhole(deliveryDays) && Number(deliveryDays) <= 90 && isWhole(deliveryDaysMax) && Number(deliveryDaysMax) <= 90)
+      ? 'Between 0 and 90 days'
+      : Number(deliveryDaysMax) < Number(deliveryDays) ? 'The longest time must be at least the shortest' : null,
     lowStock: lowStockAlert !== '' && !isWhole(lowStockAlert) ? 'Whole number, 0 or more' : null,
     tiers: tierProblem,
   };
@@ -329,10 +340,13 @@ export function ProductForm({ product, template, brands = [], sells = [] }: { pr
       gstRate,
       isGstInclusive: inclusive,
       bulkPricing: tierValues,
-      stockQuantity: stockQuantity === '' ? 0 : Number(stockQuantity),
+      supply,
+      // On order never runs out (the server keeps it available); in stock needs a real figure
+      ...(onOrder ? {} : { stockQuantity: stockQuantity === '' ? 0 : Number(stockQuantity) }),
       lowStockAlert: lowStockAlert === '' ? 0 : Number(lowStockAlert),
       minOrderQuantity: Number(minOrderQuantity),
       deliveryDays: Number(deliveryDays),
+      deliveryDaysMax: Number(deliveryDaysMax),
       specifications: cleanedSpecs,
       images,
     };
@@ -342,7 +356,7 @@ export function ProductForm({ product, template, brands = [], sells = [] }: { pr
         const { categoryId: _c, ...edits } = input;
         // Publishing a draft makes it live (or out of stock); other edits keep the current status
         const status = mode === 'draft' ? 'DRAFT'
-          : product!.status === 'DRAFT' ? ((input.stockQuantity ?? 0) > 0 ? 'ACTIVE' : 'OUT_OF_STOCK')
+          : product!.status === 'DRAFT' ? (onOrder || (input.stockQuantity ?? 0) > 0 ? 'ACTIVE' : 'OUT_OF_STOCK')
           : undefined;
         saved = await updateSupplierProduct(client, product!._id, status ? { ...edits, status } : edits);
       } else {
@@ -365,9 +379,10 @@ export function ProductForm({ product, template, brands = [], sells = [] }: { pr
       gstRate={gstRate}
       inclusive={inclusive}
       tiers={tierValues}
-      stock={isWhole(stockQuantity) ? Number(stockQuantity) : 0}
+      stock={onOrder ? 1 : isWhole(stockQuantity) ? Number(stockQuantity) : 0}
       minOrder={minOrder}
       deliveryDays={isWhole(deliveryDays) ? Number(deliveryDays) : 0}
+      deliveryDaysMax={isWhole(deliveryDaysMax) ? Number(deliveryDaysMax) : 0}
       image={images.find((i) => i.isPrimary)?.url ?? images[0]?.url}
     />
   );
@@ -608,24 +623,86 @@ export function ProductForm({ product, template, brands = [], sells = [] }: { pr
         </Step>
 
         <Step n={++n} title="Stock and delivery">
+          <div className="mb-5 flex flex-col gap-2">
+            <Segmented
+              label="Do you have it?"
+              value={supply}
+              onChange={(v) => { touch(); setSupply(v); }}
+              options={[{ value: 'IN_STOCK', label: 'In stock with me' }, { value: 'ON_ORDER', label: 'On order (from the company or made to order)' }]}
+            />
+            <p className="text-[13px] text-stone">
+              {onOrder
+                ? 'Buyers can order any quantity. Their order shows "in process" and you confirm the delivery date within 24 hours.'
+                : 'Buyers see your stock and your usual delivery time.'}
+            </p>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={`In stock now (${unitMany})`} hint="Buyers can't order more than this. 0 shows it as out of stock." error={show('stock')}>
-              <input type="number" inputMode="numeric" min="0" step="1" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} placeholder="0" className="field font-mono" />
-            </Field>
-            <Field label={`Warn me below (${unitMany})`} hint="Your Stock page flags it when stock falls to this." error={show('lowStock')}>
-              <input type="number" inputMode="numeric" min="0" step="1" value={lowStockAlert} onChange={(e) => setLowStockAlert(e.target.value)} className="field font-mono" />
-            </Field>
+            {!onOrder && (
+              <>
+                <Field label={`In stock now (${unitMany})`} hint="Buyers can't order more than this. 0 shows it as out of stock." error={show('stock')}>
+                  <input type="number" inputMode="numeric" min="0" step="1" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} placeholder="0" className="field font-mono" />
+                </Field>
+                <Field label={`Warn me below (${unitMany})`} hint="Your Stock page flags it when stock falls to this." error={show('lowStock')}>
+                  <input type="number" inputMode="numeric" min="0" step="1" value={lowStockAlert} onChange={(e) => setLowStockAlert(e.target.value)} className="field font-mono" />
+                </Field>
+              </>
+            )}
             <Field label={`Minimum order (${unitMany})`} error={show('minOrder')}>
               <input type="number" inputMode="numeric" min="1" step="1" value={minOrderQuantity} onChange={(e) => setMinOrderQuantity(e.target.value)} className="field font-mono" />
             </Field>
-            <Field label="Days to deliver" hint="Your own estimate, shown to buyers." error={show('delivery')}>
-              <input type="number" inputMode="numeric" min="0" max="60" step="1" value={deliveryDays} onChange={(e) => setDeliveryDays(e.target.value)} className="field font-mono" />
-            </Field>
+          </div>
+          <div className="mt-5">
+            <p className="text-[14px] font-semibold">Usual delivery time</p>
+            <p className="mt-0.5 text-[13px] text-stone">
+              Counted from when you accept an order. Buyers see it on the listing; you confirm the exact date when you accept.
+              {item?.madeToOrder ? ' Made-to-order work usually takes weeks.' : ''}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Usual delivery time">
+              {DELIVERY_TIME_PRESETS.map((p) => {
+                const active = String(p.min) === deliveryDays && String(p.max) === deliveryDaysMax;
+                return (
+                  <button
+                    key={p.label}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => { touch(); setDeliveryDays(String(p.min)); setDeliveryDaysMax(String(p.max)); }}
+                    className={`rounded-full px-4 py-2 text-[14px] font-medium transition-colors ${active ? 'bg-ink text-sand' : 'border border-sand-4 bg-sand hover:border-ink'}`}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-3 grid max-w-sm grid-cols-2 gap-3">
+              <Field label="From (days)" error={show('delivery')}>
+                <input type="number" inputMode="numeric" min="0" max="90" step="1" value={deliveryDays} onChange={(e) => setDeliveryDays(e.target.value)} className="field font-mono" />
+              </Field>
+              <Field label="To (days)">
+                <input type="number" inputMode="numeric" min="0" max="90" step="1" value={deliveryDaysMax} onChange={(e) => setDeliveryDaysMax(e.target.value)} className="field font-mono" />
+              </Field>
+            </div>
           </div>
         </Step>
 
         <Step n={++n} title="Photos" hint="Real photos of your stock. The first one is shown in search.">
           <ImageUploader images={images} onChange={(next) => { touch(); setImages(next); }} />
+          {/* Buyers only see real photos (no stock or drawn pictures), so a good photo sells */}
+          <ul className="mt-3 grid gap-1.5 rounded-xl bg-sand-2 px-4 py-3 text-[13px] text-stone sm:grid-cols-2">
+            {[
+              'Your own stock, in daylight, not a catalogue picture',
+              'Fill the frame with the item; one item per photo',
+              'Show the label: brand, grade, size, ISI mark',
+              'A plain background: a wall, a floor or a sheet',
+              'Add a second photo for texture or colour (tiles, laminates)',
+              'No phone numbers, prices or other shop names on the photo',
+            ].map((t) => (
+              <li key={t} className="flex items-start gap-2">
+                <span className="material-symbols-outlined mt-0.5 text-[16px] text-tertiary" aria-hidden="true">check_circle</span>
+                {t}
+              </li>
+            ))}
+          </ul>
         </Step>
 
         {/* phones have no side column: the preview folds in at the end of the form */}

@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useApiClient } from '@sthiva/web-core';
+import { deliveryTimePhrase, formatDeliveryDate, istDate, useApiClient } from '@sthiva/web-core';
 import {
-  acceptSupplierOrder, rejectSupplierOrder, reportDeliveryProblem, confirmCashCollected, useSupplierOrders, updateSupplierOrderStatus, type SupplierOrder, type SupplierOrderAction,
+  acceptSupplierOrder, rejectSupplierOrder, reportDeliveryProblem, confirmCashCollected, setSupplierDeliveryDate, useSupplierOrders, updateSupplierOrderStatus,
+  type SupplierOrder, type SupplierOrderAction,
 } from '../../../lib/orders';
 import { productErrorText } from '../../../lib/products';
 import { Chip, ChipRow, EmptyState, ErrorNote, ORDER_STATUS, PageHead, Pager, Pill, rupees, shortDate, unitLabel } from '../../../components/ui';
+import { DeliveryDatePicker } from '../../../components/DeliveryDatePicker';
 
 // Tabs follow what the seller has to do next, not the raw status names
 type Tab = { key: string; label: string; status?: string; cashPending?: boolean; empty: string };
@@ -29,7 +31,10 @@ const waNumber = (n: string) => {
   return d.length === 10 ? `91${d}` : d;
 };
 
-type Confirming = null | 'cancel' | 'delivered' | 'cash' | 'reject' | 'problem';
+type Confirming = null | 'cancel' | 'delivered' | 'cash' | 'reject' | 'problem' | 'accept' | 'date';
+
+// Orders whose delivery date the supplier can still set or change
+const DATED_STATUSES = ['CONFIRMED', 'READY_FOR_PICKUP', 'ASSIGNED', 'PICKED_UP', 'IN_TRANSIT'];
 
 function timeLeft(iso?: string) {
   if (!iso) return null;
@@ -44,6 +49,9 @@ function OrderCard({ order, onDone }: { order: SupplierOrder; onDone: () => void
   const [reason, setReason] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
+  // Suggested date: the start of this supplier's usual delivery window
+  const [date, setDate] = useState(order.deliveryDate ?? istDate(order.expectedDelivery?.minDays ?? 0));
+  const dated = DATED_STATUSES.includes(order.status);
   const status = ORDER_STATUS[order.status];
   const buyer = order.buyerId && typeof order.buyerId === 'object' ? order.buyerId : null;
   const driver = order.driverId && typeof order.driverId === 'object' ? order.driverId : null;
@@ -147,7 +155,7 @@ function OrderCard({ order, onDone }: { order: SupplierOrder; onDone: () => void
         </div>
       </div>
 
-      {(isOffer || canDispatch || canTakeOver || (order.status === 'IN_TRANSIT' && own) || cashDue || error) && (
+      {(isOffer || dated || canDispatch || canTakeOver || (order.status === 'IN_TRANSIT' && own) || cashDue || error) && (
         <div className="flex flex-col gap-3 border-t border-sand-4 bg-sand px-5 py-4">
           {error && <p role="alert" className="text-[14px] text-error">{error}</p>}
 
@@ -156,13 +164,61 @@ function OrderCard({ order, onDone }: { order: SupplierOrder; onDone: () => void
               <p className="text-[14px] text-stone">
                 Sthiva offered you this order. Accept only if you can supply every item at this quantity.{left ? ` ${left}.` : ''}
               </p>
+              {order.onOrder && (
+                <p className="rounded-lg bg-[#FFF4D6] px-3 py-2 text-[14px] text-[#5C4300]">
+                  On order: the buyer was told you will confirm the delivery date within 24 hours. Pick the date when you accept.
+                </p>
+              )}
               <div className="flex flex-wrap gap-2">
-                <button type="button" disabled={busy} onClick={() => run(() => acceptSupplierOrder(client, order._id))} className="btn-lime">
+                <button type="button" disabled={busy} onClick={() => setConfirming('accept')} className="btn-lime">
                   <span className="material-symbols-outlined text-[20px]" aria-hidden="true">check</span>
                   Accept order
                 </button>
                 <button type="button" disabled={busy} onClick={() => setConfirming('reject')} className="btn-ghost">Reject</button>
               </div>
+            </div>
+          )}
+
+          {(confirming === 'accept' || confirming === 'date') && (
+            <div role="dialog" aria-label={confirming === 'accept' ? 'Accept and confirm the delivery date' : 'Change the delivery date'} className="flex flex-col gap-3">
+              <div>
+                <p className="text-[15px] font-semibold">
+                  {confirming === 'accept' ? `When will you deliver ${order.orderNumber}?` : 'New delivery date'}
+                </p>
+                <p className="mt-0.5 text-[14px] text-stone">
+                  {order.expectedDelivery
+                    ? `Your listing says ${deliveryTimePhrase(order.expectedDelivery.minDays, order.expectedDelivery.maxDays)}. `
+                    : ''}
+                  The buyer sees this date{confirming === 'date' ? ' and is told it changed' : ''}.
+                </p>
+              </div>
+              <DeliveryDatePicker value={date} onChange={setDate} expected={order.expectedDelivery} />
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={busy || !date}
+                  onClick={() => run(() => (confirming === 'accept' ? acceptSupplierOrder(client, order._id, date) : setSupplierDeliveryDate(client, order._id, date)))}
+                  className="btn-lime"
+                >
+                  <span className="material-symbols-outlined text-[20px]" aria-hidden="true">event_available</span>
+                  {confirming === 'accept' ? `Accept, deliver ${formatDeliveryDate(date)}` : `Save ${formatDeliveryDate(date)}`}
+                </button>
+                <button type="button" disabled={busy} onClick={() => setConfirming(null)} className="btn-ghost">Back</button>
+              </div>
+            </div>
+          )}
+
+          {confirming === null && dated && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-sand-2 px-4 py-3">
+              <p className="flex items-center gap-2 text-[15px]">
+                <span className="material-symbols-outlined text-[20px]" aria-hidden="true">{order.deliveryDate ? 'event_available' : 'event'}</span>
+                {order.deliveryDate
+                  ? <>Delivery on <span className="font-semibold">{formatDeliveryDate(order.deliveryDate)}</span></>
+                  : <span className="text-stone">No delivery date confirmed yet</span>}
+              </p>
+              <button type="button" disabled={busy} onClick={() => setConfirming('date')} className="btn-ghost h-10 px-3 text-[14px]">
+                {order.deliveryDate ? 'Change date' : 'Set date'}
+              </button>
             </div>
           )}
 

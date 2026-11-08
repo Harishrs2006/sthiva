@@ -10,7 +10,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { ok } from '@sthiva/shared';
-import { Product } from '../../infrastructure/database/models/Product.model';
+import { Product, ON_ORDER_STOCK } from '../../infrastructure/database/models/Product.model';
 import { SupplierProfile } from '../../infrastructure/database/models/SupplierProfile.model';
 import { AppError } from '../../shared/errors/AppError';
 import { logger } from '../../shared/logger/logger';
@@ -72,7 +72,7 @@ export async function getWeekly(req: Request, res: Response, next: NextFunction)
   try {
     const profile = await profileFor(req.auth!.userId);
     const items = await Product.find({ supplierId: profile._id, status: { $in: LISTED } })
-      .select('name unit stockQuantity basePrice status minOrderQuantity')
+      .select('name unit stockQuantity basePrice status minOrderQuantity supply')
       .sort({ name: 1 }).lean();
     const now = new Date();
     const start = weekStart(now);
@@ -96,7 +96,7 @@ export async function confirmWeekly(req: Request, res: Response, next: NextFunct
     const profile = await profileFor(req.auth!.userId);
     const { items } = req.body as z.infer<typeof weeklyConfirmSchema>;
     const listed = await Product.find({ supplierId: profile._id, status: { $in: LISTED } })
-      .select('status basePrice minOrderQuantity bulkPricing name').lean();
+      .select('status basePrice minOrderQuantity bulkPricing name supply').lean();
     const byId = new Map(listed.map((p) => [String(p._id), p]));
 
     // Every listed item must be in the confirmation, and nothing else
@@ -118,13 +118,15 @@ export async function confirmWeekly(req: Request, res: Response, next: NextFunct
     const now = new Date();
     await Product.bulkWrite(items.map((i) => {
       const p = byId.get(i.productId)!;
+      // ON_ORDER listings never run out: the weekly check confirms their price only
+      const stock = p.supply === 'ON_ORDER' ? ON_ORDER_STOCK : i.stockQuantity;
       // Stock drives availability, as on the product page: 0 is out of stock, restocking brings it back
-      const status = i.stockQuantity <= 0 && p.status === 'ACTIVE' ? 'OUT_OF_STOCK'
-        : i.stockQuantity > 0 && p.status === 'OUT_OF_STOCK' ? 'ACTIVE' : p.status;
+      const status = stock <= 0 && p.status === 'ACTIVE' ? 'OUT_OF_STOCK'
+        : stock > 0 && p.status === 'OUT_OF_STOCK' ? 'ACTIVE' : p.status;
       return {
         updateOne: {
           filter: { _id: p._id, supplierId: profile._id, status: { $in: LISTED } },
-          update: { $set: { stockQuantity: i.stockQuantity, basePrice: i.basePrice, status, availabilityConfirmedAt: now } },
+          update: { $set: { stockQuantity: stock, basePrice: i.basePrice, status, availabilityConfirmedAt: now } },
         },
       };
     }));

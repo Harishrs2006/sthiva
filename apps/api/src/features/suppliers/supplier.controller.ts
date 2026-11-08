@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { isValidObjectId } from 'mongoose';
 import { SupplierProfile } from '../../infrastructure/database/models/SupplierProfile.model';
-import { Product } from '../../infrastructure/database/models/Product.model';
+import { Product, ON_ORDER_STOCK } from '../../infrastructure/database/models/Product.model';
 import { Order } from '../../infrastructure/database/models/Order.model';
 import { AppError } from '../../shared/errors/AppError';
 import { Category } from '../../infrastructure/database/models/Category.model';
@@ -13,7 +13,7 @@ import { ok } from '@sthiva/shared';
 import { notifyUser } from '../../shared/services/notification.service';
 import { logger } from '../../shared/logger/logger';
 import { cancelOrder, transitionOrder, recordCodCollected, checkDeliveryOtp, reportDeliveryProblem } from '../orders/order.service';
-import { acceptOffer, rejectOffer } from '../orders/allocation.service';
+import { acceptOffer, rejectOffer, setDeliveryDate } from '../orders/allocation.service';
 import { startDriverOffers } from '../delivery/driver-offers';
 import { supplierEarnings } from '../orders/commission';
 import { deliveryPoint, distanceKm } from '../delivery/delivery-pricing';
@@ -257,6 +257,7 @@ export async function listSupplierProducts(req: Request, res: Response, next: Ne
       filter.status = { $in: ['ACTIVE', 'INACTIVE'] };
       filter.$expr = { $lte: ['$stockQuantity', '$lowStockAlert'] };
       filter.stockQuantity = { $gt: 0 };
+      filter.supply = { $ne: 'ON_ORDER' };
     }
 
     const [products, total] = await Promise.all([
@@ -296,8 +297,10 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
 
     // Body is checked by createProductSchema (supplier.routes.ts)
     const { catalogItemId, brand, description, shortDescription, basePrice, gstRate, isGstInclusive,
-      stockQuantity, minOrderQuantity, deliveryDays, lowStockAlert, tags, specifications, images, bulkPricing,
+      stockQuantity: givenStock, minOrderQuantity, deliveryDays, deliveryDaysMax, supply, lowStockAlert, tags, specifications, images, bulkPricing,
       status } = req.body;
+    // An ON_ORDER listing never runs out (the supplier orders or makes it): stock is held at ON_ORDER_STOCK
+    const stockQuantity = supply === 'ON_ORDER' ? ON_ORDER_STOCK : givenStock;
     let { name, categoryId, unit } = req.body;
 
     // Selling an item already in the Sthiva catalog: its name, category and unit win, so every
@@ -358,6 +361,8 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
         stockQuantity: stockQuantity ?? 0,
         minOrderQuantity: minOrderQuantity ?? 1,
         deliveryDays: deliveryDays ?? 2,
+        supply: supply ?? 'IN_STOCK',
+        ...(deliveryDaysMax !== undefined ? { deliveryDaysMax: Math.max(deliveryDaysMax, deliveryDays ?? 2) } : {}),
         tags: tags ?? [],
         specifications: specifications ?? {},
         images: images ?? [],
@@ -385,7 +390,7 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
     const profile = await getSupplierProfile(req.auth!.userId);
 
     const editable = ['name', 'description', 'shortDescription', 'basePrice', 'gstRate', 'isGstInclusive',
-      'stockQuantity', 'minOrderQuantity', 'deliveryDays', 'tags', 'specifications', 'status', 'images',
+      'stockQuantity', 'minOrderQuantity', 'deliveryDays', 'deliveryDaysMax', 'supply', 'tags', 'specifications', 'status', 'images',
       'lowStockAlert', 'bulkPricing'];
     const update: Record<string, unknown> = {};
     for (const key of editable) {
@@ -393,8 +398,18 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
     }
 
     const current = await Product.findOne({ _id: req.params.id, supplierId: profile._id })
-      .select('status basePrice minOrderQuantity bulkPricing').lean();
+      .select('status basePrice minOrderQuantity bulkPricing deliveryDays deliveryDaysMax supply').lean();
     if (!current) throw AppError.notFound('Product');
+
+    // Delivery time stays a valid range when only one end changes: a longer shortest time stretches the longest
+    if (update.deliveryDays !== undefined || update.deliveryDaysMax !== undefined) {
+      const lo = (update.deliveryDays ?? current.deliveryDays ?? 2) as number;
+      const hi = update.deliveryDaysMax as number | undefined;
+      if (hi !== undefined && hi < lo) {
+        throw AppError.badRequest('Validation failed', [{ field: 'deliveryDaysMax', message: 'The longest delivery time cannot be shorter than the shortest' }]);
+      }
+      if (hi === undefined && current.deliveryDaysMax !== undefined && current.deliveryDaysMax < lo) update.deliveryDaysMax = lo;
+    }
 
     // Bulk prices are checked against the price and minimum order they will sit next to
     if (update.bulkPricing !== undefined || update.basePrice !== undefined || update.minOrderQuantity !== undefined) {
@@ -402,6 +417,14 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
       const problem = bulkPricingProblem(tiers, (update.basePrice ?? current.basePrice) as number, (update.minOrderQuantity ?? current.minOrderQuantity) as number);
       if (problem) throw AppError.badRequest('Validation failed', [{ field: 'bulkPricing', message: problem }]);
       if (update.bulkPricing !== undefined) update.bulkPricing = [...tiers].sort((a, b) => a.minQty - b.minQty);
+    }
+
+    // ON_ORDER never runs out; switching back to IN_STOCK needs a real stock figure (0 if none given)
+    const supplyAfter = (update.supply ?? current.supply ?? 'IN_STOCK') as 'IN_STOCK' | 'ON_ORDER';
+    if (supplyAfter === 'ON_ORDER') {
+      update.stockQuantity = ON_ORDER_STOCK;
+    } else if (current.supply === 'ON_ORDER' && update.stockQuantity === undefined) {
+      update.stockQuantity = 0;
     }
 
     // Stock drives availability: 0 hides the listing as out of stock, restocking brings it back.
@@ -442,7 +465,20 @@ export async function acceptOrder(req: Request, res: Response, next: NextFunctio
   try {
     if (!isValidObjectId(req.params.id)) throw AppError.badRequest('Invalid order ID');
     const profile = await getSupplierProfile(req.auth!.userId);
-    const { order } = await acceptOffer({ orderId: String(req.params.id), supplierProfileId: profile._id.toString(), userId: req.auth!.userId });
+    const { order } = await acceptOffer({
+      orderId: String(req.params.id), supplierProfileId: profile._id.toString(), userId: req.auth!.userId,
+      deliveryDate: req.body?.deliveryDate,
+    });
+    res.json(ok(order));
+  } catch (err) { next(err); }
+}
+
+// PATCH /suppliers/me/orders/:id/delivery-date { deliveryDate } — set or change the confirmed date; buyer is told
+export async function changeDeliveryDate(req: Request, res: Response, next: NextFunction) {
+  try {
+    if (!isValidObjectId(req.params.id)) throw AppError.badRequest('Invalid order ID');
+    const profile = await getSupplierProfile(req.auth!.userId);
+    const order = await setDeliveryDate({ orderId: String(req.params.id), supplierProfileId: profile._id.toString(), deliveryDate: req.body.deliveryDate });
     res.json(ok(order));
   } catch (err) { next(err); }
 }

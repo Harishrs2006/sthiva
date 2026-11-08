@@ -11,7 +11,7 @@ export const weeklySchema = z.object({
   confirmedThisWeek: z.boolean(),
   canDeliver: z.boolean(),
   items: z.array(z.object({
-    _id: z.string(), name: z.string(), unit: z.string(), stockQuantity: z.number(), basePrice: z.number(),
+    _id: z.string(), name: z.string(), unit: z.string(), stockQuantity: z.number(), basePrice: z.number(), supply: z.enum(['IN_STOCK', 'ON_ORDER']).optional(),
     status: z.string(), minOrderQuantity: z.number().optional(),
   }).passthrough()),
 });

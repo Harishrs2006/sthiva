@@ -18,6 +18,12 @@ export function MaterialCard({ item }: { item: CatalogItem }) {
           <p className="eyebrow text-stone">{item.group}</p>
           <h3 className="mt-1 font-display text-[19px] font-semibold leading-tight tracking-[-0.02em]">{item.name}</h3>
           {item.standard && <p className="mt-1 font-mono text-[11px] text-stone">{item.standard}</p>}
+          {item.madeToOrder && (
+            <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-ink px-2.5 py-0.5 text-[11px] font-semibold text-sand">
+              <span className="material-symbols-outlined text-[14px]" aria-hidden="true">straighten</span>
+              Made to order
+            </p>
+          )}
         </div>
       </div>
       <p className="mt-4 text-[14px] leading-relaxed text-stone">{item.summary}</p>

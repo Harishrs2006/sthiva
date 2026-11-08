@@ -85,14 +85,18 @@ export default function WeeklyPage() {
                 <li key={i._id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
                   <div className="min-w-0 flex-1">
                     <Link href={`/products/${i._id}/edit`} className="font-semibold hover:underline">{i.name}</Link>
-                    <p className="text-[13px] text-stone">Last week: {i.stockQuantity.toLocaleString('en-IN')} {unitLabel(i.unit, i.stockQuantity)} at {rupees.format(i.basePrice)}</p>
+                    <p className="text-[13px] text-stone">Last week: {i.supply === 'ON_ORDER' ? 'on order' : `${i.stockQuantity.toLocaleString('en-IN')} ${unitLabel(i.unit, i.stockQuantity)}`} at {rupees.format(i.basePrice)}</p>
                   </div>
+                  {i.supply === 'ON_ORDER' ? (
+                    <span className="text-[13px] text-stone">On order: confirm the price only</span>
+                  ) : (
                   <label className="flex items-center gap-2 text-[13px] text-stone">
                     Quantity
                     <input value={r.qty} inputMode="numeric" onChange={(e) => setRows({ ...rows, [i._id]: { ...r, qty: e.target.value.replace(/\D/g, '').slice(0, 8) } })}
                       className={`field w-28 font-mono ${qtyOk(r.qty) ? '' : 'border-error'}`} aria-label={`${i.name}: quantity you can supply this week`} />
                     <span>{unitLabel(i.unit, Number(r.qty) || 0)}</span>
                   </label>
+                  )}
                   <label className="flex items-center gap-2 text-[13px] text-stone">
                     Price ₹
                     <input value={r.price} inputMode="decimal" onChange={(e) => setRows({ ...rows, [i._id]: { ...r, price: e.target.value.replace(/[^\d.]/g, '').slice(0, 11) } })}

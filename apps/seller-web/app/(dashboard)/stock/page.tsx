@@ -125,7 +125,8 @@ export default function StockPage() {
   const fetched = list.status === 'success' ? list.products : null;
   useEffect(() => {
     if (fetched) {
-      setRows(fetched);
+      // On-order listings have no stock to count
+      setRows(fetched.filter((p) => p.supply !== 'ON_ORDER'));
       setDrafts({});
       setErrors({});
     }

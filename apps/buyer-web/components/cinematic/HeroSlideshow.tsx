@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { SthivaLogo } from '@sthiva/web-core';
 import { CHAPTERS, resolveChapterLinks } from './chapters';
+import { HeroPinCheck } from './HeroPinCheck';
 
 // Full-screen hero that plays the construction story on its own: every photo slowly pushes in
 // towards the work happening in it (transform-origin = the photo's focus point), then crossfades
@@ -120,7 +121,7 @@ export function HeroSlideshow({ categories }: { categories: Categories }) {
       ref={section}
       aria-roledescription="carousel"
       aria-label="Sthiva: construction materials marketplace"
-      className="on-ink relative isolate min-h-[100svh] overflow-hidden bg-ink text-sand"
+      className="on-ink relative isolate h-[100svh] min-h-[600px] overflow-hidden bg-ink text-sand"
     >
       {/* photos: previous (fading out under), current (fading in), next (preloading) */}
       <div className="absolute inset-0">
@@ -135,11 +136,9 @@ export function HeroSlideshow({ categories }: { categories: Categories }) {
       <div className="grain pointer-events-none absolute inset-0 z-[3]" aria-hidden="true" />
 
       {/* brand message: stays put while the photos change behind it */}
-      <div className="relative z-[4] flex min-h-[100svh] flex-col items-center px-5 pb-44 pt-[calc(var(--header-h)+16px)] text-center sm:pb-56 md:pb-40">
-        {/* my-auto centres the block but never lets it spill up under the header on short screens */}
-        <div className="my-auto flex w-full flex-col items-center">
-        <div className="hidden animate-fade-up sm:block">
-          <SthivaLogo onDark height={72} className="h-[72px] w-auto" />
+      <div className="relative z-[4] flex h-full flex-col items-center justify-center px-5 pb-56 pt-[var(--header-h)] text-center md:pb-40">
+        <div className="animate-fade-up">
+          <SthivaLogo onDark height={72} className="h-[48px] w-auto sm:h-[72px]" />
         </div>
         <h1 className="mt-6 max-w-5xl font-display text-[clamp(2.75rem,7.6vw,6.5rem)] font-bold leading-[0.92] tracking-tightest text-white text-balance">
           <span className="block animate-fade-up" style={{ animationDelay: '120ms' }}>{hero.title}</span>
@@ -148,13 +147,15 @@ export function HeroSlideshow({ categories }: { categories: Categories }) {
         <p className="mt-6 max-w-xl animate-fade-up text-pretty text-[17px] leading-relaxed text-white/80 sm:text-[19px]" style={{ animationDelay: '380ms' }}>
           {hero.body}
         </p>
-        <div className="mt-9 flex animate-fade-up flex-wrap justify-center gap-3" style={{ animationDelay: '520ms' }}>
-          <a href="#categories" className="btn-lime group h-14 px-7 text-[16px]">
+        <div className="mt-8 w-full animate-fade-up" style={{ animationDelay: '460ms' }}>
+          <HeroPinCheck />
+        </div>
+        <div className="mt-5 flex animate-fade-up flex-wrap justify-center gap-3" style={{ animationDelay: '520ms' }}>
+          <a href="#categories" className="btn-lime group h-12 px-6 text-[15px] sm:h-14 sm:px-7 sm:text-[16px]">
             Browse materials
             <span className="material-symbols-outlined text-[20px] transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true">arrow_forward</span>
           </a>
-          <a href="#how-it-works" className="btn-ghost-dark h-14 px-7 text-[16px] backdrop-blur-md">How it works</a>
-          </div>
+          <a href="#how-it-works" className="btn-ghost-dark h-12 px-6 text-[15px] backdrop-blur-md sm:h-14 sm:px-7 sm:text-[16px]">How it works</a>
         </div>
       </div>
 

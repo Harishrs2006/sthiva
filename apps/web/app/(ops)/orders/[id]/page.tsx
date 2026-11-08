@@ -209,7 +209,9 @@ function SupplierChoice({ order, reload }: { order: OrderDetail; reload: () => v
   return (
     <Panel title={waiting ? 'Needs a supplier' : 'Waiting for the supplier to accept'}>
       <p className="text-[15px] text-stone">
-        {waiting
+        {waiting && order.outOfArea
+          ? `Out of area: no supplier delivers to PIN ${order.deliveryAddress?.pincode ?? ''} yet. The buyer was told they would hear within 24 hours. Call a supplier below who can deliver there, offer it to them, or cancel the order with a reason.`
+          : waiting
           ? 'No supplier left who stocks everything at or below the buyer’s price. Call one below, then offer it to them, or cancel the order.'
           : `Offered to ${populated(order.supplierId)?.businessName ?? 'the supplier'}${expires ? `, answer by ${shortDate.format(new Date(expires))}` : ''}.`}
       </p>
@@ -221,7 +223,8 @@ function SupplierChoice({ order, reload }: { order: OrderDetail; reload: () => v
         ) : (
           <ul className="mt-3 flex flex-col gap-2">
             {options.state.data.map((s) => {
-              const usable = s.allItems && s.enoughStock && !s.current;
+              // Out of area: nobody was offered it yet, so the buyer's chosen supplier can be offered too
+              const usable = s.allItems && s.enoughStock && (!s.current || !!(waiting && order.outOfArea));
               return (
                 <li key={s.supplier._id} className="flex flex-wrap items-center gap-2 rounded-xl border border-sand-4 px-3 py-2 text-[14px]">
                   <span className="min-w-[10rem] flex-1">

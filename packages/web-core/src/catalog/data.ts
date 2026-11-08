@@ -1,4 +1,5 @@
 import type { CatalogCategory, CatalogItem, ListingUnit } from './types';
+import { INTERIOR_CATEGORIES, INTERIOR_ITEMS } from './interiors';
 
 // Material types, specs, trade units and well-known brands in the Indian market (checked against
 // BIS standards and public product listings, October 2026). Brand lists say what exists in the
@@ -19,15 +20,16 @@ const TILE_BRANDS = ['Kajaria', 'Somany', 'H&R Johnson', 'Orientbell', 'Nitco', 
 
 export const CATALOG_CATEGORIES: CatalogCategory[] = [
   { slug: 'cement-concrete', name: 'Cement & Concrete', photo: '/categories/cement-concrete.jpg', tagline: 'OPC, PPC, PSC, white cement and ready-mix concrete.', groups: ['Cement', 'Ready-mix concrete'] },
-  { slug: 'bricks-blocks', name: 'Bricks & Blocks', photo: '/categories/bricks-blocks.jpg', tagline: 'Clay and fly ash bricks, AAC and concrete blocks, pavers.', groups: ['Bricks', 'Blocks', 'Paving'] },
+  { slug: 'bricks-blocks', name: 'Bricks & Blocks', photo: '/categories/bricks-blocks.jpg', tagline: 'Clay and fly ash bricks, AAC and concrete blocks, pavers.', groups: ['Bricks', 'Blocks', 'Paving', 'Roof tiles'] },
   { slug: 'sand-aggregates', name: 'Sand & Aggregates', photo: '/categories/sand-aggregates.jpg', tagline: 'M-sand, P-sand and jelly in every size, by the tonne or brass.', groups: ['Sand', 'Aggregates (jelly)', 'Fill and road base'] },
-  { slug: 'steel-tmt-bars', name: 'Steel & TMT Bars', photo: '/categories/steel-tmt-bars.jpg', tagline: 'TMT bars by grade and diameter, binding wire, structural steel, sheets.', groups: ['Reinforcement', 'Structural steel', 'Roofing'] },
-  { slug: 'plumbing', name: 'Plumbing', photo: '/categories/plumbing.jpg', tagline: 'CPVC, UPVC and SWR pipes, fittings, bath fittings, tanks and pumps.', groups: ['Pipes', 'Fittings and valves', 'Bath and sanitary', 'Tanks and pumps'] },
-  { slug: 'electricals', name: 'Electricals', photo: '/categories/electricals.jpg', tagline: 'House wires, switches, MCBs, conduits, lights, fans and geysers.', groups: ['Wires and cables', 'Switches and protection', 'Conduits and earthing', 'Lighting and appliances'] },
-  { slug: 'paints-chemicals', name: 'Paints & Chemicals', photo: '/categories/paints-chemicals.jpg', tagline: 'Emulsions, primers, putty, enamels and waterproofing.', groups: ['Paints', 'Preparation', 'Waterproofing'] },
-  { slug: 'plywood-timber', name: 'Plywood & Timber', photo: '/categories/plywood-timber.jpg', tagline: 'MR, BWR and marine plywood, boards, laminates, doors and timber.', groups: ['Plywood', 'Boards and laminates', 'Doors and timber'] },
+  { slug: 'steel-tmt-bars', name: 'Steel & TMT Bars', photo: '/categories/steel-tmt-bars.jpg', tagline: 'TMT bars by grade and diameter, binding wire, structural steel, sheets.', groups: ['Reinforcement', 'Structural steel', 'Roofing', 'Doors and grills'] },
+  { slug: 'plumbing', name: 'Plumbing', photo: '/categories/plumbing.jpg', tagline: 'Pipes and fittings, sanitaryware, taps and showers, kitchen sinks, tanks and pumps.', groups: ['Pipes', 'Fittings and valves', 'Bath and sanitary', 'Kitchen sinks', 'Tanks and pumps', 'Rainwater'] },
+  { slug: 'electricals', name: 'Electricals', photo: '/categories/electricals.jpg', tagline: 'House wires, switches, MCBs, conduits, lights, fans, geysers and chimneys.', groups: ['Wires and cables', 'Switches and protection', 'Conduits and earthing', 'Lighting and appliances'] },
+  { slug: 'paints-chemicals', name: 'Paints & Chemicals', photo: '/categories/paints-chemicals.jpg', tagline: 'Emulsions, textures, wallpaper, primers, putty and waterproofing.', groups: ['Paints', 'Wall finishes', 'Preparation', 'Waterproofing'] },
+  { slug: 'plywood-timber', name: 'Plywood & Timber', photo: '/categories/plywood-timber.jpg', tagline: 'Plywood, laminates, modular furniture, doors, windows, glass and false ceilings.', groups: ['Plywood', 'Boards and laminates', 'Modular furniture', 'Doors and timber', 'Windows and glass', 'Ceilings and wall panels'] },
   { slug: 'machines-tools', name: 'Machines & Tools', photo: '/categories/machines-tools.jpg', tagline: 'Power tools, site equipment, scaffolding and safety gear.', groups: ['Tools', 'Site equipment', 'Safety'] },
-  { slug: 'tiles-flooring', name: 'Tiles & Flooring', photo: '/categories/tiles-flooring.jpg', tagline: 'Vitrified and ceramic tiles, natural stone, adhesives and grout.', groups: ['Tiles', 'Natural stone', 'Fixing'] },
+  { slug: 'tiles-flooring', name: 'Tiles & Flooring', photo: '/categories/tiles-flooring.jpg', tagline: 'Vitrified and ceramic tiles, natural stone, wood and vinyl flooring, adhesives.', groups: ['Tiles', 'Natural stone', 'Wood and vinyl flooring', 'Wall cladding', 'Fixing'] },
+  ...INTERIOR_CATEGORIES,
 ];
 
 export const CATALOG: CatalogItem[] = [
@@ -563,6 +565,7 @@ export const CATALOG: CatalogItem[] = [
     variants: [{ label: 'Type', options: ['Adhesive C1', 'Adhesive C2', 'Cement grout', 'Epoxy grout'] }],
     soldAs: [{ label: 'Per bag or pack' }], brands: ['MYK Laticrete', 'Roff', 'Ardex Endura', 'Kerakoll'], search: 'tile adhesive grout', image: I('tiles'),
   },
+  ...INTERIOR_ITEMS,
 ];
 
 export function catalogCategory(slug: string): CatalogCategory | undefined {
@@ -606,6 +609,8 @@ export function offerQuery(item: CatalogItem): string {
 export function suggestedListingUnit(item: CatalogItem): ListingUnit {
   const first = item.soldAs[0]?.label.toLowerCase() ?? '';
   if (first.includes('bag')) return 'BAG';
+  if (first.includes('per box')) return 'BOX';
+  if (first.includes('per sheet')) return 'SHEET';
   if (first.includes('tonne')) return 'TON';
   if (first.includes('per kg')) return 'KG';
   if (first.includes('cubic metre')) return 'CUBIC_METER';

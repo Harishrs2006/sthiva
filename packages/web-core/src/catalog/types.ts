@@ -2,7 +2,7 @@
 // sold. It never carries prices or stock: those only ever come from supplier listings (the API).
 
 // Units a supplier listing can use (apps/api Product.model.ts)
-export type ListingUnit = 'KG' | 'TON' | 'PIECE' | 'BAG' | 'BUNDLE' | 'CUBIC_METER' | 'SQUARE_METER' | 'LITER' | 'METER';
+export type ListingUnit = 'KG' | 'TON' | 'PIECE' | 'BAG' | 'BUNDLE' | 'CUBIC_METER' | 'SQUARE_METER' | 'LITER' | 'METER' | 'BOX' | 'SHEET';
 
 export type Spec = { label: string; value: string };
 export type VariantGroup = { label: string; options: string[] };
@@ -35,6 +35,7 @@ export type CatalogItem = {
   image: string; // illustration in public/illustrations
   calculator?: Calculator;
   note?: string; // honest caveat shown on the page
+  madeToOrder?: boolean; // measured and quoted by the supplier, who confirms the date after accepting
 };
 
 export type CatalogCategory = {

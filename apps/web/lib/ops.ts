@@ -22,6 +22,9 @@ export const orderSummarySchema = z
     total: z.number(),
     deliveryMode: z.enum(['PLATFORM', 'SUPPLIER']).optional(),
     allocation: z.object({ state: z.enum(['OFFERED', 'ACCEPTED', 'NEEDS_OPS']), expiresAt: z.string().optional() }).passthrough().optional(),
+    // No supplier served the buyer's PIN when ordered: Sthiva finds one (buyer was told within 24 hours)
+    outOfArea: z.boolean().optional(),
+    onOrder: z.boolean().optional(),
     driverOffer: z.object({ state: z.enum(['OFFERED', 'ASSIGNED', 'NEEDS_OPS']).optional(), expiresAt: z.string().optional() }).passthrough().optional(),
     deliveryIssue: z.object({ reason: z.string(), at: z.string(), byRole: z.string(), resolvedAt: z.string().optional(), resolution: z.string().optional() }).passthrough().optional(),
     paymentStatus: z.string(),
@@ -211,7 +214,7 @@ export const settingsApi = {
 };
 
 // Sthiva catalog (ops). Shapes mirror catalog.controller.ts.
-export const UNITS = ['BAG', 'TON', 'KG', 'PIECE', 'BUNDLE', 'CUBIC_METER', 'SQUARE_METER', 'LITER', 'METER'] as const;
+export const UNITS = ['BAG', 'TON', 'KG', 'PIECE', 'BUNDLE', 'CUBIC_METER', 'SQUARE_METER', 'LITER', 'METER', 'BOX', 'SHEET'] as const;
 export const catalogItemSchema = z
   .object({
     _id: z.string(),
