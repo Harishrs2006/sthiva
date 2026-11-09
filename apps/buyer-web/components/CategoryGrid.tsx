@@ -16,7 +16,7 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
   }
 
   return (
-    <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
       {categories.map((category, i) => {
         const meta = catalogCategory(category.slug);
         const types = catalogItems(category.slug).length;
@@ -32,7 +32,7 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
                     src={meta.photo}
                     alt=""
                     fill
-                    sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, 50vw"
+                    sizes="(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
                     className="object-cover transition-transform duration-700 ease-out-expo group-hover:scale-[1.06]"
                   />
                 ) : (
@@ -41,13 +41,10 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
                   </span>
                 )}
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,rgba(11,12,10,0.45))]" aria-hidden="true" />
-                <span className="absolute left-3 top-3 rounded-full bg-sand-2/90 px-2.5 py-1 font-mono text-[11px] text-ink backdrop-blur">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
               </div>
               <div className="flex flex-1 flex-col gap-1.5 p-3 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-display text-[16px] font-semibold leading-[1.15] tracking-[-0.02em] sm:text-[20px]">{category.name}</h3>
+                  <h3 className="font-display text-[16px] font-semibold leading-[1.15] tracking-[-0.02em] sm:text-[18px]">{category.name}</h3>
                   <span className="material-symbols-outlined mt-0.5 hidden text-[22px] text-stone transition-transform sm:inline duration-500 ease-out-expo group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-ink" aria-hidden="true">
                     arrow_outward
                   </span>
@@ -65,7 +62,7 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
 
 export function CategoryGridSkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4" aria-label="Loading categories" role="status">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5" aria-label="Loading categories" role="status">
       {Array.from({ length: 8 }, (_, i) => (
         <div key={i} className="skeleton aspect-[4/5]" />
       ))}

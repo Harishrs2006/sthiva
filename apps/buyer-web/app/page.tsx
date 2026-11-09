@@ -4,26 +4,11 @@ import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { BottomNav } from '@/components/BottomNav';
 import { SiteFooter } from '@/components/layout/SiteFooter';
-import { CategoryGrid, CategoryGridSkeleton } from '@/components/CategoryGrid';
-import { HeroSlideshow } from '@/components/cinematic/HeroSlideshow';
+import { CategoryGrid } from '@/components/CategoryGrid';
+import { ShortBanner } from '@/components/home/ShortBanner';
 import { Reveal } from '@/components/motion/Reveal';
-import { useCategories } from '@/lib/categories';
+import { BUILT_IN_CATEGORIES } from '@/lib/categories';
 import { SITE } from '@/lib/site';
-
-const MATERIALS = [
-  'Cement',
-  'TMT steel',
-  'M-sand',
-  'Bricks and blocks',
-  'Jelly and aggregates',
-  'Plywood',
-  'Tiles and granite',
-  'Paint',
-  'Plumbing',
-  'Electricals',
-  'Hardware',
-  'Machinery',
-];
 
 const STEPS = [
   {
@@ -58,56 +43,21 @@ const PRINCIPLES = [
 ];
 
 export default function HomePage() {
-  const categories = useCategories();
-
   return (
     <>
-      <Header tone="dark" darkUntilId="story" />
+      <Header />
 
-      <main id="main">
-        <HeroSlideshow categories={categories.status === 'success' ? categories.data : null} />
+      <main id="main" className="pt-[var(--header-h)]">
+        <ShortBanner />
 
-        {/* ── Materials marquee ─────────────────────────── */}
-        <div className="relative overflow-hidden border-y border-ink bg-lime py-4 text-ink" aria-label="Materials on Sthiva">
-          <div className="flex w-max animate-marquee gap-10 whitespace-nowrap hover:[animation-play-state:paused]">
-            {[...MATERIALS, ...MATERIALS].map((m, i) => (
-              <span key={i} className="flex items-center gap-10 font-display text-[22px] font-semibold tracking-[-0.02em] sm:text-[26px]" aria-hidden={i >= MATERIALS.length}>
-                {m}
-                <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-                  <path d="M7 0l1.8 5.2L14 7l-5.2 1.8L7 14l-1.8-5.2L0 7l5.2-1.8z" fill="currentColor" />
-                </svg>
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Categories ───────────────────────────────── */}
-        <section id="categories" className="scroll-mt-24 pb-20 md:pb-28">
+        {/* ── Materials: every category, in building order ── */}
+        <section id="categories" className="scroll-mt-[calc(var(--header-h)+8px)] py-8 md:py-12">
           <div className="container-x">
-            <Reveal className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
-              <div>
-                <p className="eyebrow text-stone">The catalogue</p>
-                <h2 className="mt-4 font-display text-[clamp(2.25rem,4.6vw,3.75rem)] font-bold leading-[0.98] tracking-tightest">
-                  Everything for the site.
-                </h2>
-              </div>
-              <p className="max-w-sm text-[15px] leading-relaxed text-stone">
-                Categories and listings come live from suppliers on Sthiva. Pick one to see products, prices and delivery.
-              </p>
-            </Reveal>
-
-            {categories.status === 'loading' && <CategoryGridSkeleton />}
-            {categories.status === 'error' && (
-              <div className="card flex flex-col items-center gap-3 px-6 py-14 text-center" role="alert">
-                <span className="material-symbols-outlined text-4xl text-error" aria-hidden="true">cloud_off</span>
-                <p className="font-display text-xl font-semibold">We could not load the catalogue</p>
-                <p className="max-w-sm text-[15px] text-stone">Check your connection and try again.</p>
-                <button type="button" onClick={() => window.location.reload()} className="btn-ink mt-2">
-                  Try again
-                </button>
-              </div>
-            )}
-            {categories.status === 'success' && <CategoryGrid categories={categories.data} />}
+            <div className="mb-5 flex items-end justify-between gap-4 md:mb-7">
+              <h2 className="font-display text-[24px] font-bold tracking-[-0.02em] md:text-[32px]">Shop by material</h2>
+              <p className="hidden text-[14px] text-stone md:block">From foundation to furnishing, in building order.</p>
+            </div>
+            <CategoryGrid categories={BUILT_IN_CATEGORIES} />
           </div>
         </section>
 
