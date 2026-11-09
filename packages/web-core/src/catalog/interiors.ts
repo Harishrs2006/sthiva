@@ -20,13 +20,16 @@ const CEILING_BRANDS = ['Saint-Gobain Gyproc', 'USG Boral', 'Knauf'];
 const MADE_TO_ORDER_NOTE = 'Made to order: the supplier may call or visit to confirm sizes, then confirms the delivery date within 24 hours of your order.';
 
 export const INTERIOR_CATEGORIES: CatalogCategory[] = [
-  { slug: 'hardware-fittings', name: 'Hardware & Fittings', photo: '/categories/hardware-fittings.jpg', tagline: 'Hinges, channels, handles, kitchen baskets, locks, screws and adhesives.', groups: ['Cabinet and wardrobe fittings', 'Locks and door hardware', 'Fixings and adhesives'] },
+  { slug: 'interiors', name: 'Interiors', photo: '/categories/interiors.jpg', tagline: 'Laminates, louvers, profiles, fluted glass, false ceilings, wall panels and modular work.', groups: ['Laminates and veneers', 'Louvers and wall panels', 'Profiles and fluted glass', 'False ceilings', 'Modular furniture'] },
+  { slug: 'hardware-fittings', name: 'Hardware', photo: '/categories/hardware-fittings.jpg', tagline: 'Hinges, channels, handles, kitchen baskets, locks, screws and adhesives.', groups: ['Cabinet and wardrobe fittings', 'Locks and door hardware', 'Fixings and adhesives'] },
+  { slug: 'glass', name: 'Glass', photo: '/categories/glass.jpg', tagline: 'Float and toughened glass and mirrors, cut to size.', groups: ['Glass', 'Mirrors'] },
+  { slug: 'furnishing', name: 'Furnishing', photo: '/categories/furnishing.jpg', tagline: 'Headboards, curtains and blinds, cushions.', groups: ['Headboards', 'Curtains and blinds', 'Cushions'] },
 ];
 
 export const INTERIOR_ITEMS: CatalogItem[] = [
   // ── Modular & Woodwork ────────────────────────────────────────────
   {
-    id: 'modular-kitchen', name: 'Modular kitchen', categorySlug: 'plywood-timber', group: 'Modular furniture',
+    id: 'modular-kitchen', name: 'Modular kitchen', categorySlug: 'interiors', group: 'Modular furniture',
     summary: 'Factory-made kitchen cabinets built to your kitchen\'s measurements, fitted on site.',
     uses: ['New homes and kitchen renovation', 'Base, wall and tall (pantry) units'],
     specs: [{ label: 'Priced by', value: 'Running foot of counter, or square foot of shutter area' }],
@@ -40,7 +43,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'wardrobes', name: 'Wardrobes', categorySlug: 'plywood-timber', group: 'Modular furniture',
+    id: 'wardrobes', name: 'Wardrobes', categorySlug: 'interiors', group: 'Modular furniture',
     summary: 'Built-in wardrobes with hinged or sliding shutters, made to the wall size.',
     uses: ['Bedrooms', 'Walk-in closets', 'Loft storage above'],
     specs: [{ label: 'Priced by', value: 'Square foot of front area' }],
@@ -52,7 +55,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'tv-units', name: 'TV units and wall storage', categorySlug: 'plywood-timber', group: 'Modular furniture',
+    id: 'tv-units', name: 'TV units and wall storage', categorySlug: 'interiors', group: 'Modular furniture',
     summary: 'Wall-mounted or floor TV units with panelling, shelves and closed storage.',
     uses: ['Living rooms', 'Bedrooms'], specs: [],
     variants: [{ label: 'Style', options: ['Wall-mounted', 'Floor-standing', 'Full-wall panelling', 'Slatted (fluted) wood'] }],
@@ -60,7 +63,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'storage-beds', name: 'Beds with storage', categorySlug: 'plywood-timber', group: 'Modular furniture',
+    id: 'storage-beds', name: 'Beds with storage', categorySlug: 'interiors', group: 'Modular furniture',
     summary: 'Plywood or solid-wood beds with hydraulic lift-up or drawer storage underneath.',
     uses: ['Bedrooms with little floor space'], specs: [],
     variants: [
@@ -71,7 +74,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'study-units', name: 'Study tables and bookshelves', categorySlug: 'plywood-timber', group: 'Modular furniture',
+    id: 'study-units', name: 'Study tables and bookshelves', categorySlug: 'interiors', group: 'Modular furniture',
     summary: 'Wall-mounted desks, study units and bookshelves for homes and home offices.',
     uses: ['Kids\' rooms', 'Home office'], specs: [],
     variants: [{ label: 'Item', options: ['Study table', 'Wall-mounted desk', 'Bookshelf', 'Combined study unit'] }],
@@ -79,7 +82,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'crockery-shoe-units', name: 'Crockery and shoe units', categorySlug: 'plywood-timber', group: 'Modular furniture',
+    id: 'crockery-shoe-units', name: 'Crockery and shoe units', categorySlug: 'interiors', group: 'Modular furniture',
     summary: 'Crockery cabinets with glass shutters and shoe racks for the entrance.',
     uses: ['Dining area', 'Entrance foyer'], specs: [],
     variants: [{ label: 'Item', options: ['Crockery unit', 'Shoe rack', 'Foyer storage with seat'] }],
@@ -87,7 +90,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'pooja-units', name: 'Pooja units (mandir)', categorySlug: 'plywood-timber', group: 'Modular furniture',
+    id: 'pooja-units', name: 'Pooja units (mandir)', categorySlug: 'interiors', group: 'Modular furniture',
     summary: 'Wall-mounted or floor-standing pooja units in wood, with jaali panels and drawers.',
     uses: ['Pooja corner or pooja room'], specs: [],
     variants: [
@@ -98,7 +101,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'jaali-partitions', name: 'CNC jaali and partition panels', categorySlug: 'plywood-timber', group: 'Modular furniture',
+    id: 'jaali-partitions', name: 'CNC jaali and partition panels', categorySlug: 'interiors', group: 'Louvers and wall panels',
     summary: 'Cut patterned panels for room partitions, pooja doors, ceilings and wall features.',
     uses: ['Living and dining partitions', 'Pooja doors', 'Feature walls'], specs: [],
     variants: [{ label: 'Material', options: ['MDF', 'HDHMR', 'Plywood', 'Metal (MS or aluminium)'] }],
@@ -108,7 +111,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
 
   // ── Walls & Ceilings ──────────────────────────────────────────────
   {
-    id: 'gypsum-false-ceiling', name: 'Gypsum false ceiling', categorySlug: 'plywood-timber', group: 'Ceilings and wall panels',
+    id: 'gypsum-false-ceiling', name: 'Gypsum false ceiling', categorySlug: 'interiors', group: 'False ceilings',
     summary: 'Gypsum boards fixed on a galvanised steel frame, for smooth ceilings with cove and spot lights.',
     uses: ['Living rooms and bedrooms', 'Hiding wiring and AC ducts', 'Cove lighting'],
     standard: 'IS 2095 (gypsum plaster boards)', specs: [{ label: 'Board thickness', value: '12.5 mm is the usual ceiling board' }],
@@ -116,20 +119,20 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     soldAs: [{ label: 'Per board' }, { label: 'Per square foot', note: 'installed' }], brands: CEILING_BRANDS, search: 'gypsum false ceiling', aliases: ['gypsum board', 'false ceiling'], image: I('generic'),
   },
   {
-    id: 'grid-ceiling', name: 'Grid ceiling tiles', categorySlug: 'plywood-timber', group: 'Ceilings and wall panels',
+    id: 'grid-ceiling', name: 'Grid ceiling tiles', categorySlug: 'interiors', group: 'False ceilings',
     summary: 'Lay-in mineral fibre or metal tiles on a T-grid, easy to open for services.',
     uses: ['Offices and shops', 'Basements and utility areas'], specs: [{ label: 'Tile size', value: '600 × 600 mm' }],
     variants: [{ label: 'Tile', options: ['Mineral fibre', 'Metal', 'Gypsum'] }],
     soldAs: [{ label: 'Per box' }, { label: 'Per square foot', note: 'installed' }], brands: ['Armstrong', 'USG Boral'], search: 'grid ceiling tile', image: I('generic'),
   },
   {
-    id: 'pop', name: 'POP (plaster of Paris)', categorySlug: 'paints-chemicals', group: 'Preparation',
+    id: 'pop', name: 'POP (plaster of Paris)', categorySlug: 'paints-chemicals', group: 'Putty and primers',
     summary: 'Quick-setting plaster for ceiling designs, cornices and smooth wall finishing.',
     uses: ['Ceiling designs and cornices', 'Wall finishing before paint'], specs: [],
     variants: [], soldAs: [{ label: 'Per bag' }], brands: [], search: 'pop plaster of paris', aliases: ['pop'], image: I('cement'),
   },
   {
-    id: 'pvc-wpc-panels', name: 'PVC and WPC wall panels', categorySlug: 'plywood-timber', group: 'Ceilings and wall panels',
+    id: 'pvc-wpc-panels', name: 'PVC and WPC wall panels', categorySlug: 'interiors', group: 'Louvers and wall panels',
     summary: 'Ready panels for feature walls and ceilings: fluted, louvred or flat, water-resistant.',
     uses: ['TV and bed back walls', 'Ceilings in balconies and bathrooms'], specs: [],
     variants: [
@@ -139,21 +142,21 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     soldAs: [{ label: 'Per panel' }, { label: 'Per square foot' }], brands: [], search: 'pvc wpc wall panel', aliases: ['louvers', 'fluted panel', 'charcoal panel'], image: I('generic'),
   },
   {
-    id: 'wall-cladding', name: 'Wall cladding (stone and tiles)', categorySlug: 'tiles-flooring', group: 'Wall cladding',
+    id: 'wall-cladding', name: 'Wall cladding (stone and tiles)', categorySlug: 'interiors', group: 'Louvers and wall panels',
     summary: 'Natural stone strips, brick-look and elevation tiles for feature walls and facades.',
     uses: ['House front elevation', 'Feature walls', 'Compound walls'], specs: [],
     variants: [{ label: 'Type', options: ['Natural stone', 'Brick-look tile', 'Elevation tile', 'Stone-look panel'] }],
     soldAs: [{ label: 'Per square foot' }, { label: 'Per box' }], brands: [], search: 'wall cladding elevation', aliases: ['elevation tiles', 'stone cladding'], image: I('tiles'),
   },
   {
-    id: 'wallpaper', name: 'Wallpaper', categorySlug: 'paints-chemicals', group: 'Wall finishes',
+    id: 'wallpaper', name: 'Wallpaper', categorySlug: 'paints-chemicals', group: 'Textures and wallpaper',
     summary: 'Printed and textured wall coverings, from vinyl rolls to custom murals.',
     uses: ['Bedroom and living room feature walls', 'Kids\' rooms'], specs: [],
     variants: [{ label: 'Type', options: ['Vinyl', 'Non-woven', 'Custom mural', 'Fabric-backed'] }],
     soldAs: [{ label: 'Per roll' }, { label: 'Per square foot', note: 'murals' }], brands: ['Marshalls', 'Asian Paints'], search: 'wallpaper', image: I('paint'),
   },
   {
-    id: 'texture-finishes', name: 'Texture and designer finishes', categorySlug: 'paints-chemicals', group: 'Wall finishes',
+    id: 'texture-finishes', name: 'Texture and designer finishes', categorySlug: 'paints-chemicals', group: 'Textures and wallpaper',
     summary: 'Textured paints, metallic and concrete-look finishes applied by trained painters.',
     uses: ['Feature walls', 'Exterior textures'], specs: [],
     variants: [{ label: 'Finish', options: ['Interior texture', 'Exterior texture', 'Metallic', 'Concrete or stone look', 'Lime plaster'] }],
@@ -233,7 +236,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
 
   // ── Doors & Windows ───────────────────────────────────────────────
   {
-    id: 'upvc-windows', name: 'UPVC windows and doors', categorySlug: 'plywood-timber', group: 'Windows and glass',
+    id: 'upvc-windows', name: 'UPVC windows and doors', categorySlug: 'steel-tmt-bars', group: 'Windows and frames',
     summary: 'Weather-tight, low-maintenance UPVC frames with glass, made to the opening size.',
     uses: ['Bedrooms and living rooms', 'Balcony sliding doors', 'Homes near traffic (noise)'], specs: [],
     variants: [
@@ -244,7 +247,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'aluminium-windows', name: 'Aluminium windows and partitions', categorySlug: 'plywood-timber', group: 'Windows and glass',
+    id: 'aluminium-windows', name: 'Aluminium windows and partitions', categorySlug: 'steel-tmt-bars', group: 'Windows and frames',
     summary: 'Aluminium sliding windows, doors and glass partitions in powder-coated finishes.',
     uses: ['Windows and balcony doors', 'Office and shop partitions'], specs: [],
     variants: [{ label: 'Type', options: ['Sliding window', 'Casement window', 'Sliding door', 'Glass partition'] }],
@@ -252,7 +255,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: MADE_TO_ORDER_NOTE,
   },
   {
-    id: 'main-doors', name: 'Main and designer doors', categorySlug: 'plywood-timber', group: 'Doors and timber',
+    id: 'main-doors', name: 'Main and designer doors', categorySlug: 'plywood-timber', group: 'Doors',
     summary: 'Solid wood and engineered main doors with carving, veneer or laminate finish.',
     uses: ['Main entrance', 'Pooja room doors'], specs: [],
     variants: [{ label: 'Material', options: ['Teak wood', 'Solid hardwood', 'Engineered wood with veneer', 'Laminated'] }],
@@ -267,14 +270,14 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     soldAs: [{ label: 'Per door' }], brands: ['Tata Pravesh', 'Godrej'], search: 'steel door safety door', image: I('steel'),
   },
   {
-    id: 'bathroom-doors', name: 'WPC and PVC doors', categorySlug: 'plywood-timber', group: 'Doors and timber',
+    id: 'bathroom-doors', name: 'WPC and PVC doors', categorySlug: 'plywood-timber', group: 'Doors',
     summary: 'Waterproof doors and frames that do not swell, for bathrooms and utility areas.',
     uses: ['Bathrooms', 'Utility rooms'], specs: [],
     variants: [{ label: 'Material', options: ['WPC door', 'PVC door', 'WPC frame'] }],
     soldAs: [{ label: 'Per door' }], brands: [], search: 'wpc door pvc door', aliases: ['bathroom door'], image: I('plywood'),
   },
   {
-    id: 'glass', name: 'Float and toughened glass', categorySlug: 'plywood-timber', group: 'Windows and glass',
+    id: 'glass', name: 'Float and toughened glass', categorySlug: 'glass', group: 'Glass',
     summary: 'Clear and tinted float glass, toughened glass for doors and partitions, mirrors.',
     uses: ['Windows', 'Shower partitions and railings', 'Table tops and mirrors'],
     standard: 'IS 2553 (safety glass)', specs: [],
@@ -286,7 +289,7 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     madeToOrder: true, note: 'Cut to size: the supplier confirms the date after measuring.',
   },
   {
-    id: 'mosquito-mesh', name: 'Mosquito mesh and grills', categorySlug: 'plywood-timber', group: 'Windows and glass',
+    id: 'mosquito-mesh', name: 'Mosquito mesh and grills', categorySlug: 'steel-tmt-bars', group: 'Doors and grills',
     summary: 'Pleated, sliding and magnetic mosquito mesh, and MS or SS window grills.',
     uses: ['Windows and balcony doors'], specs: [],
     variants: [{ label: 'Type', options: ['Pleated mesh', 'Sliding mesh', 'Magnetic mesh', 'MS grill', 'SS grill'] }],
@@ -379,5 +382,58 @@ export const INTERIOR_ITEMS: CatalogItem[] = [
     uses: ['Bedrooms and kids\' rooms', 'Offices and shops'], specs: [],
     variants: [{ label: 'Type', options: ['SPC click planks', 'LVT planks', 'Vinyl roll'] }],
     soldAs: [{ label: 'Per box' }, { label: 'Per square foot' }], brands: ['Tarkett', 'Gerflor'], search: 'vinyl spc flooring', image: I('tiles'),
+  },
+  // ── Added for the 14-category structure (2026-11-09) ──────────────
+  {
+    id: 'wpc-boards', name: 'WPC boards and sheets', categorySlug: 'plywood-timber', group: 'WPC',
+    summary: 'Wood-plastic composite boards that do not rot or swell, for wet areas and outdoor work.',
+    uses: ['Bathroom and kitchen cabinets', 'Door frames', 'Outdoor panelling'], specs: [],
+    variants: [{ label: 'Thickness', options: ['6 mm', '12 mm', '18 mm'] }],
+    soldAs: [{ label: 'Per sheet' }], brands: [], search: 'wpc board', aliases: ['wpc'], image: I('plywood'),
+  },
+  {
+    id: 'aluminium-profiles', name: 'Aluminium profiles and profile shutters', categorySlug: 'interiors', group: 'Profiles and fluted glass',
+    summary: 'Aluminium frame profiles for glass shutters, handle profiles and edge trims.',
+    uses: ['Glass shutters for kitchens and wardrobes', 'Handle-less cabinets', 'Edge and tile trims'], specs: [],
+    variants: [{ label: 'Item', options: ['Glass shutter profile', 'G or J handle profile', 'Edge trim', 'Tile trim'] }, { label: 'Finish', options: ['Black', 'Champagne gold', 'Silver', 'Bronze'] }],
+    soldAs: [{ label: 'Per length' }, { label: 'Per running foot' }], brands: ['Hettich', 'Häfele', 'Ebco'], search: 'aluminium profile', aliases: ['profile'], image: I('steel'),
+  },
+  {
+    id: 'fluted-glass', name: 'Fluted and decorative glass', categorySlug: 'interiors', group: 'Profiles and fluted glass',
+    summary: 'Fluted (reeded), frosted and tinted glass for shutters, partitions and doors.',
+    uses: ['Cabinet and wardrobe shutters', 'Partitions', 'Bathroom doors'], specs: [],
+    variants: [{ label: 'Type', options: ['Fluted (reeded)', 'Frosted', 'Tinted', 'Lacquered (back-painted)'] }, { label: 'Thickness', options: ['4 mm', '5 mm', '8 mm'] }],
+    soldAs: [{ label: 'Per square foot', note: 'cut to size' }], brands: ['Saint-Gobain', 'AIS'], search: 'fluted glass', aliases: ['reeded glass'], image: I('generic'),
+    madeToOrder: true, note: 'Cut to size: the supplier confirms the delivery date within 24 hours of your order.',
+  },
+  {
+    id: 'mirrors', name: 'Mirrors', categorySlug: 'glass', group: 'Mirrors',
+    summary: 'Plain, bevelled and LED mirrors, cut to size or ready-made.',
+    uses: ['Bathrooms', 'Wardrobes and dressers', 'Living room feature walls'], specs: [],
+    variants: [{ label: 'Type', options: ['Plain', 'Bevelled edge', 'LED backlit', 'Tinted'] }],
+    soldAs: [{ label: 'Per square foot' }, { label: 'Per piece' }], brands: ['Saint-Gobain', 'AIS'], search: 'mirror', image: I('generic'),
+  },
+  {
+    id: 'headboards', name: 'Headboards', categorySlug: 'furnishing', group: 'Headboards',
+    summary: 'Upholstered and panelled headboards, made to the bed size.',
+    uses: ['Bedrooms'], specs: [],
+    variants: [{ label: 'Style', options: ['Upholstered (fabric)', 'Leatherette', 'Wood panel', 'Fluted panel'] }, { label: 'Bed size', options: ['Single', 'Queen', 'King'] }],
+    soldAs: [{ label: 'Per piece' }], brands: [], search: 'headboard', image: I('plywood'),
+    madeToOrder: true, note: 'Made to order: the supplier confirms the delivery date within 24 hours of your order.',
+  },
+  {
+    id: 'curtains-blinds', name: 'Curtains and blinds', categorySlug: 'furnishing', group: 'Curtains and blinds',
+    summary: 'Curtains, sheers and window blinds, stitched or made to the window size, with rods and tracks.',
+    uses: ['Living rooms and bedrooms', 'Offices'], specs: [],
+    variants: [{ label: 'Type', options: ['Curtains', 'Sheers', 'Roller blinds', 'Zebra blinds', 'Roman blinds', 'Rods and tracks'] }],
+    soldAs: [{ label: 'Per window' }, { label: 'Per square foot' }], brands: [], search: 'curtain blind', aliases: ['blinds'], image: I('generic'),
+    madeToOrder: true, note: 'Made to order: the supplier confirms the delivery date within 24 hours of your order.',
+  },
+  {
+    id: 'cushions', name: 'Cushions', categorySlug: 'furnishing', group: 'Cushions',
+    summary: 'Cushions and covers for sofas, beds and seating.',
+    uses: ['Sofas', 'Beds', 'Window seats'], specs: [],
+    variants: [{ label: 'Size', options: ['12 x 12 inch', '16 x 16 inch', '18 x 18 inch', '24 x 24 inch'] }],
+    soldAs: [{ label: 'Per piece' }, { label: 'Per set' }], brands: [], search: 'cushion', image: I('generic'),
   },
 ];
