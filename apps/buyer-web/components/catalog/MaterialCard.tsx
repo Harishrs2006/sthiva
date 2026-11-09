@@ -4,7 +4,8 @@ import type { CatalogItem } from '@sthiva/web-core';
 
 // A material type in the catalogue (not a supplier listing): what it is, sizes and how it is sold
 export function MaterialCard({ item }: { item: CatalogItem }) {
-  const sizes = item.variants[item.variants.length - 1];
+  // show the size range on the card (the first group when no group is called Size)
+  const sizes = item.variants.find((v) => /size/i.test(v.label)) ?? item.variants[0];
   return (
     <Link
       href={`/materials/${item.id}`}
