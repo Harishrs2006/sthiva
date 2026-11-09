@@ -55,7 +55,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
 
   return (
     <>
-      <Header tone="dark" darkUntilId="category-hero" />
+      <Header />
       <main id="main" className="pb-24">
         {/* banner */}
         <section id="category-hero" className="on-ink relative isolate overflow-hidden bg-ink text-sand">

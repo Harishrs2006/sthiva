@@ -18,19 +18,29 @@ const PAINT_BRANDS = ['Asian Paints', 'Berger', 'Nerolac', 'Dulux', 'Birla Opus'
 const PLY_BRANDS = ['Century', 'Greenply', 'Kitply', 'Archidply'];
 const TILE_BRANDS = ['Kajaria', 'Somany', 'H&R Johnson', 'Orientbell', 'Nitco', 'AGL', 'Simpolo', 'Varmora'];
 
-export const CATALOG_CATEGORIES: CatalogCategory[] = [
+// The materials page order: the sequence a house is built in. Slugs never change (they are the API
+// category ids and page addresses); names and groups follow the words the trade uses.
+const BASE_CATEGORIES: CatalogCategory[] = [
   { slug: 'cement-concrete', name: 'Cement & Concrete', photo: '/categories/cement-concrete.jpg', tagline: 'OPC, PPC, PSC, white cement and ready-mix concrete.', groups: ['Cement', 'Ready-mix concrete'] },
-  { slug: 'bricks-blocks', name: 'Bricks & Blocks', photo: '/categories/bricks-blocks.jpg', tagline: 'Clay and fly ash bricks, AAC and concrete blocks, pavers.', groups: ['Bricks', 'Blocks', 'Paving', 'Roof tiles'] },
-  { slug: 'sand-aggregates', name: 'Sand & Aggregates', photo: '/categories/sand-aggregates.jpg', tagline: 'M-sand, P-sand and jelly in every size, by the tonne or brass.', groups: ['Sand', 'Aggregates (jelly)', 'Fill and road base'] },
-  { slug: 'steel-tmt-bars', name: 'Steel & TMT Bars', photo: '/categories/steel-tmt-bars.jpg', tagline: 'TMT bars by grade and diameter, binding wire, structural steel, sheets.', groups: ['Reinforcement', 'Structural steel', 'Roofing', 'Doors and grills'] },
-  { slug: 'plumbing', name: 'Plumbing', photo: '/categories/plumbing.jpg', tagline: 'Pipes and fittings, sanitaryware, taps and showers, kitchen sinks, tanks and pumps.', groups: ['Pipes', 'Fittings and valves', 'Bath and sanitary', 'Kitchen sinks', 'Tanks and pumps', 'Rainwater'] },
-  { slug: 'electricals', name: 'Electricals', photo: '/categories/electricals.jpg', tagline: 'House wires, switches, MCBs, conduits, lights, fans, geysers and chimneys.', groups: ['Wires and cables', 'Switches and protection', 'Conduits and earthing', 'Lighting and appliances'] },
-  { slug: 'paints-chemicals', name: 'Paints & Chemicals', photo: '/categories/paints-chemicals.jpg', tagline: 'Emulsions, textures, wallpaper, primers, putty and waterproofing.', groups: ['Paints', 'Wall finishes', 'Preparation', 'Waterproofing'] },
-  { slug: 'plywood-timber', name: 'Plywood & Timber', photo: '/categories/plywood-timber.jpg', tagline: 'Plywood, laminates, modular furniture, doors, windows, glass and false ceilings.', groups: ['Plywood', 'Boards and laminates', 'Modular furniture', 'Doors and timber', 'Windows and glass', 'Ceilings and wall panels'] },
-  { slug: 'machines-tools', name: 'Machines & Tools', photo: '/categories/machines-tools.jpg', tagline: 'Power tools, site equipment, scaffolding and safety gear.', groups: ['Tools', 'Site equipment', 'Safety'] },
-  { slug: 'tiles-flooring', name: 'Tiles & Flooring', photo: '/categories/tiles-flooring.jpg', tagline: 'Vitrified and ceramic tiles, natural stone, wood and vinyl flooring, adhesives.', groups: ['Tiles', 'Natural stone', 'Wood and vinyl flooring', 'Wall cladding', 'Fixing'] },
-  ...INTERIOR_CATEGORIES,
+  { slug: 'sand-aggregates', name: 'Sand, Jelly & Stone', photo: '/categories/sand-aggregates.jpg', tagline: 'P-sand, M-sand, river sand, baby jelly, jelly and stones, by the tonne or brass.', groups: ['Sand', 'Aggregates (jelly)', 'Fill and road base'] },
+  { slug: 'bricks-blocks', name: 'Bricks & Blocks', photo: '/categories/bricks-blocks.jpg', tagline: 'Clay and fly ash bricks, AAC and concrete blocks, pavers, roof tiles.', groups: ['Bricks', 'Blocks', 'Paving', 'Roof tiles'] },
+  { slug: 'steel-tmt-bars', name: 'Steel, UPVC & Aluminium', photo: '/categories/steel-tmt-bars.jpg', tagline: 'TMT bars, structural steel, roofing sheets, UPVC and aluminium frames, grills.', groups: ['Reinforcement', 'Structural steel', 'Roofing', 'Windows and frames', 'Doors and grills'] },
+  { slug: 'tiles-flooring', name: 'Tiles & Flooring', photo: '/categories/tiles-flooring.jpg', tagline: 'Vitrified and ceramic tiles, granite, marble, wood and vinyl floors, adhesive and grout.', groups: ['Tiles', 'Natural stone', 'Wood and vinyl flooring', 'Adhesives and grout'] },
+  { slug: 'plywood-timber', name: 'Plywood & Wood', photo: '/categories/plywood-timber.jpg', tagline: 'Plywood, boards, WPC, teak, neem and other timber, doors and frames.', groups: ['Plywood', 'Boards', 'WPC', 'Wood and timber', 'Doors'] },
+  { slug: 'paints-chemicals', name: 'Paints & Textures', photo: '/categories/paints-chemicals.jpg', tagline: 'Emulsions, enamels, textures, wallpaper rolls, wall putty, primers and waterproofing.', groups: ['Paints', 'Textures and wallpaper', 'Putty and primers', 'Waterproofing'] },
+  { slug: 'plumbing', name: 'Plumbing & Sanitary', photo: '/categories/plumbing.jpg', tagline: 'Pipes and fittings, sanitaryware, taps, showers, sinks, geysers, tanks and pumps.', groups: ['Pipes', 'Fittings and valves', 'Bath and sanitary', 'Kitchen sinks', 'Tanks, pumps and geysers', 'Rainwater'] },
+  { slug: 'electricals', name: 'Electricals', photo: '/categories/electricals.jpg', tagline: 'House wires, switches, MCBs, conduits, lights, fans and chimneys.', groups: ['Wires and cables', 'Switches and protection', 'Conduits and earthing', 'Lighting and appliances'] },
+  { slug: 'machines-tools', name: 'Tools & Machines', photo: '/categories/machines-tools.jpg', tagline: 'Power tools, site equipment, scaffolding and safety gear.', groups: ['Tools', 'Site equipment', 'Safety'] },
 ];
+
+const CATEGORY_ORDER = [
+  'cement-concrete', 'sand-aggregates', 'bricks-blocks', 'steel-tmt-bars', 'tiles-flooring', 'plywood-timber', 'interiors',
+  'paints-chemicals', 'plumbing', 'electricals', 'hardware-fittings', 'glass', 'furnishing', 'machines-tools',
+];
+
+export const CATALOG_CATEGORIES: CatalogCategory[] = CATEGORY_ORDER
+  .map((slug) => [...BASE_CATEGORIES, ...INTERIOR_CATEGORIES].find((c) => c.slug === slug))
+  .filter((c): c is CatalogCategory => Boolean(c));
 
 export const CATALOG: CatalogItem[] = [
   // ── Cement & Concrete ─────────────────────────────────────────────
@@ -171,7 +181,7 @@ export const CATALOG: CatalogItem[] = [
     standard: 'IS 383 (coarse aggregate)', specs: [{ label: 'Material', value: 'Crushed granite or basalt' }],
     variants: [{ label: 'Size', options: ['6 mm', '12 mm', '20 mm', '40 mm'] }],
     soldAs: [{ label: 'Per tonne' }, { label: 'Per cubic foot (cft)' }, { label: 'Per brass', note: '100 cft' }, { label: 'Per truck load' }],
-    brands: [], search: 'jelly aggregate', aliases: ['jelly', 'crushed stone', 'stone chips', 'kapchi', 'blue metal', 'aggregate'], image: I('sand'), calculator: { kind: 'bulk', densityTPerM3: 1.5, material: 'aggregate' },
+    brands: [], search: 'jelly aggregate', aliases: ['jelly', 'baby jelly', 'crushed stone', 'stone chips', 'kapchi', 'blue metal', 'aggregate'], image: I('sand'), calculator: { kind: 'bulk', densityTPerM3: 1.5, material: 'aggregate' },
   },
   {
     id: 'stone-dust', name: 'Quarry dust', categorySlug: 'sand-aggregates', group: 'Fill and road base',
@@ -303,14 +313,14 @@ export const CATALOG: CatalogItem[] = [
     soldAs: [{ label: 'Per piece' }], brands: ['Hindware', 'Cera', 'Parryware', 'Jaquar', 'Kohler'], search: 'wash basin closet', image: I('plumbing'),
   },
   {
-    id: 'water-tanks', name: 'Water tanks', categorySlug: 'plumbing', group: 'Tanks and pumps',
+    id: 'water-tanks', name: 'Water tanks', categorySlug: 'plumbing', group: 'Tanks, pumps and geysers',
     summary: 'Rotomoulded plastic overhead and loft tanks.',
     uses: ['Overhead storage', 'Loft tanks'], specs: [{ label: 'Construction', value: '3 or 4 layer' }],
     variants: [{ label: 'Capacity', options: ['500 L', '750 L', '1000 L', '1500 L', '2000 L', '3000 L', '5000 L'] }],
     soldAs: [{ label: 'Per piece' }], brands: ['Sintex', 'Supreme', 'Vectus', 'Ashirvad'], search: 'water tank', image: I('plumbing'),
   },
   {
-    id: 'water-pumps', name: 'Water pumps', categorySlug: 'plumbing', group: 'Tanks and pumps',
+    id: 'water-pumps', name: 'Water pumps', categorySlug: 'plumbing', group: 'Tanks, pumps and geysers',
     summary: 'Monoblock, self-priming and submersible pumps.',
     uses: ['Sump to overhead tank', 'Borewells'], specs: [],
     variants: [{ label: 'Type', options: ['Monoblock', 'Self-priming', 'Openwell submersible', 'Borewell submersible'] }, { label: 'Power', options: ['0.5 HP', '1 HP', '1.5 HP', '2 HP'] }],
@@ -376,7 +386,7 @@ export const CATALOG: CatalogItem[] = [
     soldAs: [{ label: 'Per piece' }], brands: ['Crompton', 'Havells', 'Orient', 'Usha', 'Bajaj', 'Atomberg', 'Polycab', 'V-Guard'], search: 'ceiling fan', image: I('electrical'),
   },
   {
-    id: 'water-heaters', name: 'Water heaters (geysers)', categorySlug: 'electricals', group: 'Lighting and appliances',
+    id: 'water-heaters', name: 'Water heaters (geysers)', categorySlug: 'plumbing', group: 'Tanks, pumps and geysers',
     summary: 'Storage and instant electric water heaters.',
     uses: ['Bathrooms', 'Kitchens'], specs: [],
     variants: [{ label: 'Capacity', options: ['3 L instant', '6 L', '10 L', '15 L', '25 L'] }],
@@ -413,14 +423,14 @@ export const CATALOG: CatalogItem[] = [
     brands: PAINT_BRANDS, search: 'enamel paint', image: I('paint'),
   },
   {
-    id: 'primer', name: 'Primers', categorySlug: 'paints-chemicals', group: 'Preparation',
+    id: 'primer', name: 'Primers', categorySlug: 'paints-chemicals', group: 'Putty and primers',
     summary: 'Base coats that seal the surface and help paint bond.',
     uses: ['New plaster', 'Metal (red oxide)', 'Wood'], specs: [],
     variants: [{ label: 'Type', options: ['Interior wall primer', 'Exterior wall primer', 'Red oxide metal primer', 'Wood primer'] }, { label: 'Pack', options: ['1 L', '4 L', '10 L', '20 L'] }],
     soldAs: [{ label: 'Per pack' }], brands: PAINT_BRANDS, search: 'primer', image: I('paint'),
   },
   {
-    id: 'wall-putty', name: 'Wall putty', categorySlug: 'paints-chemicals', group: 'Preparation',
+    id: 'wall-putty', name: 'Wall putty', categorySlug: 'paints-chemicals', group: 'Putty and primers',
     summary: 'White-cement or acrylic putty that fills and smooths plaster before painting.',
     uses: ['Smoothing new and old walls'], specs: [],
     variants: [{ label: 'Type', options: ['White cement based', 'Acrylic'] }, { label: 'Pack', options: ['1 kg', '5 kg', '20 kg', '40 kg'] }],
@@ -452,31 +462,31 @@ export const CATALOG: CatalogItem[] = [
     soldAs: [{ label: 'Per sheet' }, { label: 'Per square foot' }], brands: PLY_BRANDS, search: 'BWP plywood', aliases: ['bwr', 'bwp', 'marine ply'], image: I('plywood'),
   },
   {
-    id: 'boards', name: 'Block board, MDF and HDHMR', categorySlug: 'plywood-timber', group: 'Boards and laminates',
+    id: 'boards', name: 'Block board, MDF and HDHMR', categorySlug: 'plywood-timber', group: 'Boards',
     summary: 'Engineered boards for long shelves, doors and CNC work.',
     uses: ['Long shelves and doors (block board)', 'Painted and CNC panels (MDF, HDHMR)'], specs: [],
     variants: [{ label: 'Type', options: ['Block board', 'MDF', 'HDHMR'] }, { label: 'Thickness', options: ['12 mm', '16 mm', '18 mm', '19 mm', '25 mm'] }],
     soldAs: [{ label: 'Per sheet' }], brands: ['Century', 'Greenpanel', 'Action Tesa', 'Greenply'], search: 'block board MDF', image: I('plywood'),
   },
   {
-    id: 'laminates', name: 'Laminates and veneers', categorySlug: 'plywood-timber', group: 'Boards and laminates',
+    id: 'laminates', name: 'Laminates and veneers', categorySlug: 'interiors', group: 'Laminates and veneers',
     summary: 'Decorative surface sheets for furniture.',
     uses: ['Wardrobe and kitchen shutters', 'Wall panelling'], specs: [],
     variants: [{ label: 'Type', options: ['0.8 mm laminate', '1 mm laminate', 'Acrylic', 'Natural veneer'] }],
     soldAs: [{ label: 'Per sheet' }], brands: ['Merino', 'Greenlam', 'Century', 'Royale Touche'], search: 'laminate', image: I('plywood'),
   },
   {
-    id: 'flush-doors', name: 'Flush doors and door frames', categorySlug: 'plywood-timber', group: 'Doors and timber',
+    id: 'flush-doors', name: 'Flush doors and door frames', categorySlug: 'plywood-timber', group: 'Doors',
     summary: 'Ready flush door shutters and frames.',
     uses: ['Room and bathroom doors'], standard: 'IS 2202', specs: [],
     variants: [{ label: 'Thickness', options: ['30 mm', '32 mm', '35 mm'] }], soldAs: [{ label: 'Per piece' }, { label: 'Per square foot' }],
     brands: ['Century', 'Greenply', 'Kitply'], search: 'flush door', image: I('plywood'),
   },
   {
-    id: 'sawn-timber', name: 'Sawn timber', categorySlug: 'plywood-timber', group: 'Doors and timber',
+    id: 'sawn-timber', name: 'Sawn timber', categorySlug: 'plywood-timber', group: 'Wood and timber',
     summary: 'Seasoned hardwood sections for frames and joinery.',
     uses: ['Door and window frames', 'Staircases and joinery'], specs: [],
-    variants: [{ label: 'Wood', options: ['Teak', 'Sal', 'Honne', 'Other hardwood'] }], soldAs: [{ label: 'Per cubic foot (cft)' }],
+    variants: [{ label: 'Wood', options: ['Teak', 'Neem', 'Sal', 'Honne', 'Other hardwood'] }], soldAs: [{ label: 'Per cubic foot (cft)' }],
     brands: [], search: 'timber', image: I('plywood'),
     note: 'Timber species and seasoning vary by depot. Ask for the species and moisture content.',
   },
@@ -558,11 +568,11 @@ export const CATALOG: CatalogItem[] = [
     brands: [], search: 'marble kota shahabad', image: I('tiles'),
   },
   {
-    id: 'tile-adhesive-grout', name: 'Tile adhesive and grout', categorySlug: 'tiles-flooring', group: 'Fixing',
+    id: 'tile-adhesive-grout', name: 'Tile adhesive and grout', categorySlug: 'tiles-flooring', group: 'Adhesives and grout',
     summary: 'Polymer adhesives for fixing tiles and grouts for the joints.',
     uses: ['Large-format and vitrified tiles', 'Wall tiles over plaster', 'Epoxy grout in wet areas'],
     standard: 'IS 15477 (adhesives)', specs: [],
-    variants: [{ label: 'Type', options: ['Adhesive C1', 'Adhesive C2', 'Cement grout', 'Epoxy grout'] }],
+    variants: [{ label: 'Type', options: ['Adhesive powder C1', 'Adhesive powder C2', 'Ready liquid adhesive', 'Cement grout', 'Epoxy grout'] }],
     soldAs: [{ label: 'Per bag or pack' }], brands: ['MYK Laticrete', 'Roff', 'Ardex Endura', 'Kerakoll'], search: 'tile adhesive grout', image: I('tiles'),
   },
   ...INTERIOR_ITEMS,

@@ -23,12 +23,17 @@ describe('catalogue data', () => {
     }
   });
 
-  it('every category has items and slugs the API would make from its name', () => {
-    for (const c of CATALOG_CATEGORIES) {
-      expect(CATALOG.some((i) => i.categorySlug === c.slug), c.slug).toBe(true);
-      // apps/api slugify: lower case, runs of other characters become one hyphen
-      expect(c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''), c.name).toBe(c.slug);
+  it('every category has items; new categories are created in ops under a name that gives their slug', () => {
+    for (const c of CATALOG_CATEGORIES) expect(CATALOG.some((i) => i.categorySlug === c.slug), c.slug).toBe(true);
+    // Existing categories keep their slug when renamed in ops; these are created fresh (apps/api slugify),
+    // then renamed if the display name differs (Hardware & Fittings -> Hardware)
+    const CREATE_AS: Record<string, string> = { interiors: 'Interiors', 'hardware-fittings': 'Hardware & Fittings', glass: 'Glass', furnishing: 'Furnishing' };
+    for (const [slug, name] of Object.entries(CREATE_AS)) {
+      expect(CATALOG_CATEGORIES.some((c) => c.slug === slug), slug).toBe(true);
+      expect(name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''), name).toBe(slug);
     }
+    expect(CATALOG_CATEGORIES.map((c) => c.slug).slice(0, 3)).toEqual(['cement-concrete', 'sand-aggregates', 'bricks-blocks']);
+    expect(CATALOG_CATEGORIES).toHaveLength(14);
   });
 
   it('every photo and illustration exists', () => {

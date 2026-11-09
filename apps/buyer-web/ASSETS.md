@@ -40,3 +40,7 @@ roofing-waterproofing) and `public/rooms/` (kitchen, bathroom, bedroom, living, 
 Sthiva with Figma AI (gemini-3.1-flash-image), 1264x848, saved as JPG (82 to 187 KB). No people, no brand names.
 The woodwork photo showed a machine maker's logo and model number on a panel saw: painted out with the
 surrounding colours. They are illustrations of the kind of work, not photos of real Sthiva suppliers.
+
+`public/categories/glass.jpg` and `public/categories/furnishing.jpg` (2026-11-09): AI-generated with Figma AI for the
+new Glass and Furnishing category tiles, JPG. No people, no brand names. `interiors.jpg` is the earlier
+walls-ceilings illustration restored from git history. Replace with real supplier photos when available.

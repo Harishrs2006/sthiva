@@ -5,7 +5,13 @@
 @layer base {
   :root {
     color-scheme: light;
-    --header-h: 72px;
+    /* Header: 60 px bar + 58 px search row on phones; 64 px bar + 48 px category row from md */
+    --header-h: 118px;
+  }
+  @media (min-width: 768px) {
+    :root {
+      --header-h: 113px;
+    }
   }
   html,
   body {
